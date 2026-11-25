@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, ImagePlus, Camera, Sparkles, Lock, AlertTriangle, ShieldAlert } from 'lucide-react';
 import { useTrading } from '../../context/TradingContext';
-import { SESSIONS_LIST } from '../../utils/sessionConfig';
+import { SESSIONS_LIST, isSessionActiveNow } from '../../utils/sessionConfig';
 
 const SESSIONS = [
   { value: 'London', label: 'London' },
@@ -431,32 +431,45 @@ export const LogTradeModal = () => {
             </div>
           </div>
 
-          {/* Row 2b: Trading Session (Color-Coded Interactive Selection) */}
-          <div className="space-y-1.5 p-3.5 rounded-xl border border-border/80 bg-secondary/20">
+          {/* Row 2b: Trading Session (Color-Coded Interactive Selection with IST Timings) */}
+          <div className="space-y-2 p-3.5 rounded-xl border border-border/80 bg-secondary/20">
             <div className="flex items-center justify-between">
               <label className="block text-muted-foreground text-[11px] font-bold tracking-wider uppercase">
-                Trading Session
+                Trading Session (IST Timings)
               </label>
               <span className="text-[11px] font-mono text-muted-foreground">
-                Active: <span className="font-bold text-foreground">{session}</span>
+                Selected: <span className="font-bold text-foreground">{session}</span>
               </span>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 pt-0.5">
               {SESSIONS_LIST.map((item) => {
                 const isSelected = session === item.id || session === item.label;
+                const isLive = isSessionActiveNow(item.id);
                 return (
                   <button
                     key={item.id}
                     type="button"
                     onClick={() => setSession(item.id)}
-                    className={`py-2 px-2 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
                       isSelected
                         ? item.activeBg
                         : 'bg-secondary/40 text-muted-foreground border-border hover:text-foreground hover:bg-secondary/70'
                     }`}
                   >
-                    <span className={`w-2 h-2 rounded-full shrink-0 ${item.dot} ${isSelected ? 'animate-pulse' : 'opacity-70'}`} />
-                    <span className="truncate">{item.label}</span>
+                    <div className="flex items-center justify-between gap-1">
+                      <div className="flex items-center gap-1.5 font-bold text-xs text-foreground">
+                        <span className={`w-2 h-2 rounded-full shrink-0 ${item.dot} ${isSelected ? 'animate-pulse' : 'opacity-80'}`} />
+                        <span>{item.label}</span>
+                      </div>
+                      {isLive && (
+                        <span className="px-1.5 py-0.2 rounded text-[9px] font-mono font-bold uppercase tracking-wider bg-profit/20 text-profit border border-profit/40 animate-pulse">
+                          Live IST
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[10px] font-mono mt-1.5 flex items-center justify-between text-muted-foreground">
+                      <span className="font-semibold text-foreground/80">{item.istTime}</span>
+                    </div>
                   </button>
                 );
               })}
