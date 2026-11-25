@@ -1,11 +1,11 @@
 /**
  * Forex Trading Session Configurations & IST Timings
- * Exact IST timings:
+ * Exact IST timings as requested:
  * - Sydney: 3:30 AM – 12:30 PM IST
  * - Tokyo (Asian): 5:30 AM – 2:30 PM IST
  * - London (European): 1:30 PM – 10:30 PM IST
  * - New York (North American): 6:30 PM – 3:30 AM IST
- * - London/NY Overlap: 6:30 PM – 10:30 PM IST (Peak Volatility)
+ * - London/NY Overlap: 6:30 PM – 10:30 PM IST (Peak Volume Window)
  */
 
 export const SESSIONS_LIST = [
@@ -81,33 +81,52 @@ export const SESSIONS_LIST = [
   },
 ];
 
-export const isSessionActiveNow = (sessionId) => {
+/**
+ * Returns the exact single current active trading session based on Indian Standard Time (IST).
+ * Full 24-hour cycle coverage:
+ * - 03:30 AM – 05:30 AM IST (210 to 330 mins): Sydney
+ * - 05:30 AM – 01:30 PM IST (330 to 810 mins): Tokyo (Asian)
+ * - 01:30 PM – 06:30 PM IST (810 to 1110 mins): London (European)
+ * - 06:30 PM – 03:30 AM IST (1110 to 1440 and 0 to 210 mins): New York (North American)
+ */
+export const getCurrentLiveSessionId = () => {
   try {
     const now = new Date();
-    // UTC offset for IST is +5.5 hours
+    // UTC offset for IST is +5.5 hours (+330 minutes)
     const utcTime = now.getTime() + now.getTimezoneOffset() * 60000;
     const istDate = new Date(utcTime + 3600000 * 5.5);
     const totalMinutes = istDate.getHours() * 60 + istDate.getMinutes();
 
-    if (sessionId === 'Sydney') {
-      return totalMinutes >= 210 && totalMinutes <= 750; // 3:30 AM to 12:30 PM
+    // 03:30 AM to 05:30 AM IST (210 to 330 mins)
+    if (totalMinutes >= 210 && totalMinutes < 330) {
+      return 'Sydney';
     }
-    if (sessionId === 'Tokyo') {
-      return totalMinutes >= 330 && totalMinutes <= 870; // 5:30 AM to 2:30 PM
+    // 05:30 AM to 01:30 PM IST (330 to 810 mins)
+    if (totalMinutes >= 330 && totalMinutes < 810) {
+      return 'Tokyo';
     }
-    if (sessionId === 'London') {
-      return totalMinutes >= 810 && totalMinutes <= 1350; // 1:30 PM to 10:30 PM
+    // 01:30 PM to 06:30 PM IST (810 to 1110 mins)
+    if (totalMinutes >= 810 && totalMinutes < 1110) {
+      return 'London';
     }
-    if (sessionId === 'New York') {
-      return totalMinutes >= 1110 || totalMinutes <= 210; // 6:30 PM to 3:30 AM
+    // 06:30 PM to 03:30 AM IST (1110 to 1440 mins OR 0 to 210 mins)
+    if (totalMinutes >= 1110 || totalMinutes < 210) {
+      return 'New York';
     }
-    if (sessionId === 'London/NY Overlap') {
-      return totalMinutes >= 1110 && totalMinutes <= 1350; // 6:30 PM to 10:30 PM
-    }
-    return false;
+
+    return 'New York';
   } catch {
-    return false;
+    return 'New York';
   }
+};
+
+/**
+ * Checks whether the given session is the currently active live session.
+ * Exactly ONE session can be true at any moment.
+ */
+export const isSessionActiveNow = (sessionId) => {
+  const currentLive = getCurrentLiveSessionId();
+  return sessionId === currentLive;
 };
 
 export const getSessionConfig = (sessionName) => {

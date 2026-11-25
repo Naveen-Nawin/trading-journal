@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, ImagePlus, Camera, Sparkles, Lock, AlertTriangle, ShieldAlert } from 'lucide-react';
 import { useTrading } from '../../context/TradingContext';
-import { SESSIONS_LIST, isSessionActiveNow } from '../../utils/sessionConfig';
+import { SESSIONS_LIST, isSessionActiveNow, getCurrentLiveSessionId } from '../../utils/sessionConfig';
 
 const SESSIONS = [
   { value: 'London', label: 'London' },
@@ -63,7 +63,7 @@ export const LogTradeModal = () => {
   const [entryPrice, setEntryPrice] = useState('');
   const [stopLoss, setStopLoss] = useState('');
   const [takeProfit, setTakeProfit] = useState('');
-  const [session, setSession] = useState('London');
+  const [session, setSession] = useState(() => getCurrentLiveSessionId());
   const [isClosed, setIsClosed] = useState(false);
   const [exitPrice, setExitPrice] = useState('');
   const [pnl, setPnl] = useState('');
@@ -93,7 +93,7 @@ export const LogTradeModal = () => {
       setEntryPrice('');
       setStopLoss('');
       setTakeProfit('');
-      setSession('London');
+      setSession(getCurrentLiveSessionId());
       setIsClosed(false);
       setExitPrice('');
       setPnl('');
