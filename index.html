@@ -11,10 +11,25 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <script type="module" crossorigin src="./assets/index-By4Dw3F9.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-DTmhsFNK.css">
+    <script>
+      (function() {
+        try {
+          const t = localStorage.getItem('pipdesk_theme_v1') || 'dark';
+          document.documentElement.setAttribute('data-theme', t);
+          if (t === 'light' || t === 'latte-cream') {
+            document.documentElement.classList.remove('dark');
+            document.documentElement.classList.add('light');
+          } else {
+            document.documentElement.classList.remove('light');
+            document.documentElement.classList.add('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <script type="module" crossorigin src="./assets/index-BUUoVIEU.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-nAntJsCu.css">
   </head>
-  <body class="bg-[#090e17] text-[#e6edf3] antialiased">
+  <body class="bg-background text-foreground antialiased transition-colors duration-200">
     <div id="root"></div>
   </body>
 </html>
