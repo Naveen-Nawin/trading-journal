@@ -1,0 +1,549 @@
+import React, { useState, useMemo } from 'react';
+import {
+  Search,
+  Upload,
+  Download,
+  ChevronDown,
+  ChevronRight,
+  Edit2,
+  Trash2,
+  CheckCircle2,
+  XCircle,
+  ExternalLink,
+  Image as ImageIcon,
+  Camera,
+  Sparkles,
+} from 'lucide-react';
+import { useTrading } from '../../context/TradingContext';
+import { NOV_19_MT5_SCREENSHOT_TRADES } from '../../utils/ocrScanner';
+import {
+  formatCurrencyRaw,
+  formatR,
+  formatPips,
+  formatDateDisplay,
+} from '../../utils/formatters';
+
+export const TradesView = () => {
+  const {
+    trades,
+    currency,
+    setTradeToClose,
+    setTradeToEdit,
+    setTradeToDelete,
+    exportCSV,
+    setIsImportExportOpen,
+    setIsScanModalOpen,
+    logMultipleTrades,
+  } = useTrading();
+
+  // Filter States
+  const [statusFilter, setStatusFilter] = useState('ALL'); // 'ALL' | 'OPEN' | 'CLOSED'
+  const [pairFilter, setPairFilter] = useState('ALL');
+  const [sessionFilter, setSessionFilter] = useState('ALL');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [dateFilter, setDateFilter] = useState('');
+
+  // Expanded rows state
+  const [expandedRows, setExpandedRows] = useState({});
+
+  const toggleRow = (id) => {
+    setExpandedRows((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
+  // Unique lists for dropdowns
+  const uniquePairs = useMemo(() => {
+    const set = new Set(trades.map((t) => t.pair).filter(Boolean));
+    return Array.from(set).sort();
+  }, [trades]);
+
+  const uniqueSessions = useMemo(() => {
+    const set = new Set(trades.map((t) => t.session).filter(Boolean));
+    return Array.from(set).sort();
+  }, [trades]);
+
+  // Filtered trades
+  const filteredTrades = useMemo(() => {
+    return trades.filter((trade) => {
+      // Status
+      if (statusFilter === 'OPEN' && trade.status !== 'OPEN') return false;
+      if (statusFilter === 'CLOSED' && trade.status !== 'CLOSED') return false;
+
+      // Pair
+      if (pairFilter !== 'ALL' && trade.pair !== pairFilter) return false;
+
+      // Session
+      if (sessionFilter !== 'ALL' && trade.session !== sessionFilter) return false;
+
+      // Date
+      if (dateFilter && trade.date !== dateFilter) return false;
+
+      // Search Query in notes, pair, or setupTag
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        const inNotes = (trade.notes || '').toLowerCase().includes(q);
+        const inPair = (trade.pair || '').toLowerCase().includes(q);
+        const inTag = (trade.setupTag || '').toLowerCase().includes(q);
+        if (!inNotes && !inPair && !inTag) return false;
+      }
+
+      return true;
+    });
+  }, [trades, statusFilter, pairFilter, sessionFilter, dateFilter, searchQuery]);
+
+  // Summary of filtered trades
+  const filteredNetPnl = useMemo(() => {
+    return filteredTrades
+      .filter((t) => t.status === 'CLOSED' && typeof t.pnl === 'number')
+      .reduce((sum, t) => sum + t.pnl, 0);
+  }, [filteredTrades]);
+
+  return (
+    <div className="space-y-6 pb-24">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div className="text-[#64748b] text-[11px] font-bold tracking-widest uppercase mb-1">
+            TRADE LOG
+          </div>
+          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
+            Your Trades
+          </h1>
+        </div>
+
+        {/* Import / Export / Scan Buttons */}
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={() => setIsScanModalOpen(true)}
+            className="flex items-center gap-2 px-3.5 py-2 bg-[#0e271f] hover:bg-[#13372b] text-[#00f098] border border-[#00f098]/40 hover:border-[#00f098]/70 rounded-lg text-xs font-bold shadow-[0_0_12px_rgba(0,240,152,0.15)] transition cursor-pointer"
+          >
+            <Camera className="w-3.5 h-3.5" />
+            <span>Scan Screenshot</span>
+          </button>
+          <button
+            onClick={() => setIsImportExportOpen(true)}
+            className="flex items-center gap-2 px-3.5 py-2 bg-[#0b1117] hover:bg-[#121c27] text-[#cbd5e1] hover:text-white border border-[#1b2837] rounded-lg text-xs font-semibold transition cursor-pointer"
+          >
+            <Upload className="w-3.5 h-3.5" />
+            <span>Import CSV</span>
+          </button>
+          <button
+            onClick={exportCSV}
+            className="flex items-center gap-2 px-3.5 py-2 bg-[#0b1117] hover:bg-[#121c27] text-[#cbd5e1] hover:text-white border border-[#1b2837] rounded-lg text-xs font-semibold transition cursor-pointer"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Export CSV</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Filters Toolbar */}
+      <div className="bg-[#0b1117] border border-[#16222f] rounded-xl p-4 flex flex-wrap items-center gap-3">
+        {/* Status Pills */}
+        <div className="flex items-center bg-[#070b0f] p-1 rounded-lg border border-[#16222f]">
+          {['ALL', 'OPEN', 'CLOSED'].map((st) => (
+            <button
+              key={st}
+              onClick={() => setStatusFilter(st)}
+              className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${
+                statusFilter === st
+                  ? 'bg-[#00f098]/20 text-[#00f098] border border-[#00f098]/40 shadow-xs'
+                  : 'text-[#64748b] hover:text-white'
+              }`}
+            >
+              {st === 'ALL' ? 'All' : st === 'OPEN' ? 'Open' : 'Closed'}
+            </button>
+          ))}
+        </div>
+
+        {/* Pair Dropdown */}
+        <div className="relative">
+          <select
+            value={pairFilter}
+            onChange={(e) => setPairFilter(e.target.value)}
+            className="bg-[#070b0f] text-xs font-mono text-[#cbd5e1] border border-[#16222f] rounded-lg px-3 py-1.5 focus:outline-hidden focus:border-[#00f098]/50 cursor-pointer"
+          >
+            <option value="ALL">All pairs</option>
+            {uniquePairs.map((p) => (
+              <option key={p} value={p}>
+                {p}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Session Dropdown */}
+        <div className="relative">
+          <select
+            value={sessionFilter}
+            onChange={(e) => setSessionFilter(e.target.value)}
+            className="bg-[#070b0f] text-xs text-[#cbd5e1] border border-[#16222f] rounded-lg px-3 py-1.5 focus:outline-hidden focus:border-[#00f098]/50 cursor-pointer"
+          >
+            <option value="ALL">All sessions</option>
+            {uniqueSessions.map((s) => (
+              <option key={s} value={s}>
+                {s}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Date Filter */}
+        <div className="flex items-center gap-1 bg-[#070b0f] border border-[#16222f] rounded-lg px-2.5 py-1">
+          <input
+            type="date"
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            className="bg-transparent text-xs text-[#cbd5e1] font-mono focus:outline-hidden"
+          />
+          {dateFilter && (
+            <button
+              onClick={() => setDateFilter('')}
+              className="text-[#64748b] hover:text-white text-xs ml-1"
+            >
+              ×
+            </button>
+          )}
+        </div>
+
+        {/* Search Notes */}
+        <div className="flex-1 min-w-[200px] relative">
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748b]" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search notes..."
+            className="w-full bg-[#070b0f] text-xs text-[#cbd5e1] placeholder-[#546577] border border-[#16222f] rounded-lg pl-8 pr-3 py-1.5 focus:outline-hidden focus:border-[#00f098]/50"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748b] hover:text-white text-xs"
+            >
+              ×
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Trades Table */}
+      <div className="bg-[#0b1117] border border-[#16222f] rounded-2xl overflow-hidden shadow-xl">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-[#141e2a] text-[#546577] text-[11px] font-mono font-bold tracking-wider">
+                <th className="py-3.5 px-4 w-10"></th>
+                <th className="py-3.5 px-3">PAIR</th>
+                <th className="py-3.5 px-3">SESSION</th>
+                <th className="py-3.5 px-3">LOTS</th>
+                <th className="py-3.5 px-3">ENTRY → EXIT</th>
+                <th className="py-3.5 px-3">R</th>
+                <th className="py-3.5 px-3">PIPS</th>
+                <th className="py-3.5 px-3">DATE</th>
+                <th className="py-3.5 px-3">P&L</th>
+                <th className="py-3.5 px-4 text-right">ACTIONS</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#121c27]/70 text-xs font-mono">
+              {filteredTrades.length === 0 ? (
+                <tr>
+                  <td colSpan="10" className="py-16 text-center text-[#64748b]">
+                    <div className="flex flex-col items-center justify-center space-y-2">
+                      <div className="w-10 h-10 rounded-full bg-[#131f2b] flex items-center justify-center text-[#00f098] font-bold text-sm">
+                        +
+                      </div>
+                      <div className="text-white font-medium text-sm">No trades logged yet</div>
+                      <p className="text-xs text-[#64748b] max-w-sm">
+                        Your trade journal is clean and ready. Click the green &ldquo;+ Log Trade&rdquo; button, or load your screenshot trades below:
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => logMultipleTrades(NOV_19_MT5_SCREENSHOT_TRADES)}
+                        className="mt-3 flex items-center gap-1.5 px-3.5 py-2 bg-[#0e271f] hover:bg-[#13372b] text-[#00f098] border border-[#00f098]/50 hover:border-[#00f098] rounded-xl text-xs font-bold transition shadow-[0_0_15px_rgba(0,240,152,0.18)] cursor-pointer"
+                      >
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Insert Today's Nov 19 MT5 Trades (7 Gold Trades)</span>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredTrades.map((trade) => {
+                  const isExpanded = !!expandedRows[trade.id];
+                  const isOpen = trade.status === 'OPEN';
+                  const isBuy = trade.direction === 'BUY';
+                  const isProfit = !isOpen && trade.pnl > 0;
+                  const isLoss = !isOpen && trade.pnl < 0;
+
+                  return (
+                    <React.Fragment key={trade.id}>
+                      <tr
+                        className={`hover:bg-[#0f1721] transition-colors group ${
+                          isExpanded ? 'bg-[#0e1620]' : ''
+                        }`}
+                      >
+                        {/* Expand Chevron */}
+                        <td className="py-3 px-4">
+                          <button
+                            onClick={() => toggleRow(trade.id)}
+                            className="text-[#64748b] hover:text-[#00f098] transition p-1"
+                          >
+                            {isExpanded ? (
+                              <ChevronDown className="w-4 h-4 text-[#00f098]" />
+                            ) : (
+                              <ChevronRight className="w-4 h-4" />
+                            )}
+                          </button>
+                        </td>
+
+                        {/* Pair + Direction badge */}
+                        <td className="py-3 px-3">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-white tracking-wide">
+                              {trade.pair}
+                            </span>
+                            <span
+                              className={`text-[9px] font-bold px-1.5 py-0.5 rounded tracking-wider uppercase ${
+                                isBuy
+                                  ? 'bg-[#00f098]/15 text-[#00f098] border border-[#00f098]/30'
+                                  : 'bg-[#ff4d4d]/15 text-[#ff4d4d] border border-[#ff4d4d]/30'
+                              }`}
+                            >
+                              {trade.direction}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Session */}
+                        <td className="py-3 px-3 text-[#94a3b8] font-sans">
+                          {trade.session}
+                        </td>
+
+                        {/* Lots */}
+                        <td className="py-3 px-3 text-[#cbd5e1]">
+                          {trade.lots}
+                        </td>
+
+                        {/* Entry -> Exit */}
+                        <td className="py-3 px-3 text-[#94a3b8]">
+                          {isOpen ? (
+                            <span className="text-[#cbd5e1] font-semibold">{trade.entryPrice}</span>
+                          ) : (
+                            <span>
+                              {trade.entryPrice} → {trade.exitPrice}
+                            </span>
+                          )}
+                        </td>
+
+                        {/* R Multiple */}
+                        <td className="py-3 px-3">
+                          {isOpen ? (
+                            <span className="text-[#64748b]">-</span>
+                          ) : (
+                            <span
+                              className={`font-semibold ${
+                                (trade.rMultiple || 0) >= 0
+                                  ? 'text-[#00f098]'
+                                  : 'text-[#ff4d4d]'
+                              }`}
+                            >
+                              {formatR(trade.rMultiple)}
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Pips */}
+                        <td className="py-3 px-3">
+                          {isOpen ? (
+                            <span className="text-[#64748b]">-</span>
+                          ) : (
+                            <span
+                              className={`font-semibold ${
+                                (trade.pips || 0) >= 0
+                                  ? 'text-[#00f098]'
+                                  : 'text-[#ff4d4d]'
+                              }`}
+                            >
+                              {formatPips(trade.pips)}
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Date */}
+                        <td className="py-3 px-3 text-[#8092a4]">
+                          {formatDateDisplay(trade.date)}
+                        </td>
+
+                        {/* P&L */}
+                        <td className="py-3 px-3">
+                          {isOpen ? (
+                            <span className="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/30">
+                              OPEN
+                            </span>
+                          ) : (
+                            <span
+                              className={`font-bold ${
+                                isProfit
+                                  ? 'text-[#00f098]'
+                                  : isLoss
+                                  ? 'text-[#ff4d4d]'
+                                  : 'text-[#8092a4]'
+                              }`}
+                            >
+                              {formatCurrencyRaw(trade.pnl, currency, true)}
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Actions */}
+                        <td className="py-3 px-4 text-right">
+                          <div className="flex items-center justify-end gap-1.5">
+                            {isOpen && (
+                              <button
+                                onClick={() => setTradeToClose(trade)}
+                                className="px-2.5 py-1 text-[11px] font-bold rounded bg-[#131f2b] hover:bg-[#00f098]/20 text-[#cbd5e1] hover:text-[#00f098] border border-[#1f2e3e] hover:border-[#00f098]/40 transition mr-1"
+                              >
+                                Close
+                              </button>
+                            )}
+
+                            <button
+                              onClick={() => setTradeToEdit(trade)}
+                              className="p-1.5 text-[#64748b] hover:text-white rounded hover:bg-[#15212c] transition"
+                              title="Edit trade"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+
+                            <button
+                              onClick={() => setTradeToDelete(trade)}
+                              className="p-1.5 text-[#64748b] hover:text-[#ff4d4d] rounded hover:bg-[#15212c] transition"
+                              title="Delete trade"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+
+                      {/* Expanded Accordion Details */}
+                      {isExpanded && (
+                        <tr className="bg-[#080d12]/95 border-b border-[#141e2a]">
+                          <td colSpan="10" className="p-5">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-sans">
+                              {/* Left Column: Plan & Details */}
+                              <div className="space-y-3">
+                                <div className="text-[11px] font-bold uppercase tracking-wider text-[#64748b]">
+                                  Execution Details
+                                </div>
+                                <div className="space-y-1.5 text-xs">
+                                  <div className="flex justify-between text-[#8092a4]">
+                                    <span>Stop Loss:</span>
+                                    <span className="font-mono text-white font-medium">
+                                      {trade.stopLoss || 'None set'}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between text-[#8092a4]">
+                                    <span>Take Profit:</span>
+                                    <span className="font-mono text-white font-medium">
+                                      {trade.takeProfit || 'None set'}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between text-[#8092a4]">
+                                    <span>Setup Tag:</span>
+                                    <span className="font-mono px-2 py-0.5 rounded bg-[#131f2b] text-[#00f098] border border-[#1b2b3b]">
+                                      {trade.setupTag || 'General'}
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between text-[#8092a4]">
+                                    <span>Followed Plan:</span>
+                                    <span className="flex items-center gap-1 font-semibold">
+                                      {trade.followedPlan ? (
+                                        <span className="text-[#00f098] flex items-center gap-1">
+                                          <CheckCircle2 className="w-3.5 h-3.5" /> Yes
+                                        </span>
+                                      ) : (
+                                        <span className="text-[#ff4d4d] flex items-center gap-1">
+                                          <XCircle className="w-3.5 h-3.5" /> No
+                                        </span>
+                                      )}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Middle Column: Trade Notes & Review */}
+                              <div className="space-y-2">
+                                <div className="text-[11px] font-bold uppercase tracking-wider text-[#64748b]">
+                                  Journal Notes & Reflection
+                                </div>
+                                <p className="text-xs text-[#cbd5e1] leading-relaxed bg-[#0b1219] p-3 rounded-lg border border-[#15212d] min-h-[70px]">
+                                  {trade.notes || 'No reflections logged for this trade.'}
+                                </p>
+                              </div>
+
+                              {/* Right Column: Screenshot Preview */}
+                              <div className="space-y-2">
+                                <div className="text-[11px] font-bold uppercase tracking-wider text-[#64748b]">
+                                  Chart Screenshot
+                                </div>
+                                {trade.screenshot ? (
+                                  <div className="relative group rounded-lg overflow-hidden border border-[#1a2837] h-28 bg-[#090e14]">
+                                    <img
+                                      src={trade.screenshot}
+                                      alt="Trade chart"
+                                      className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                                    />
+                                    <a
+                                      href={trade.screenshot}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs gap-1 transition"
+                                    >
+                                      <ExternalLink className="w-4 h-4" /> View Full
+                                    </a>
+                                  </div>
+                                ) : (
+                                  <div className="h-28 rounded-lg border border-dashed border-[#1a2837] bg-[#090e14] flex flex-col items-center justify-center text-[#546577] text-xs">
+                                    <ImageIcon className="w-5 h-5 mb-1" />
+                                    <span>No screenshot attached</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Footer Summary */}
+        <div className="p-4 border-t border-[#141e2a] flex items-center justify-between text-xs font-mono text-[#64748b] bg-[#080d12]">
+          <div>
+            <span>{filteredTrades.length} trades</span>
+            <span className="mx-2">·</span>
+            <span>
+              net{' '}
+              <strong
+                className={`font-bold ${
+                  filteredNetPnl >= 0 ? 'text-[#00f098]' : 'text-[#ff4d4d]'
+                }`}
+              >
+                {formatCurrencyRaw(filteredNetPnl, currency, true)}
+              </strong>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
