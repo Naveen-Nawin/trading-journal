@@ -45,7 +45,7 @@ export const ImportExportModal = () => {
 
         parsedTrades.push({
           id: `tr-import-${Date.now()}-${i}`,
-          pair: (row.pair || 'EURUSD').toUpperCase(),
+          pair: (row.pair || 'XAUUSD').toUpperCase(),
           direction: (row.direction || 'BUY').toUpperCase(),
           session: row.session || 'London',
           lots: parseFloat(row.lots) || 0.1,

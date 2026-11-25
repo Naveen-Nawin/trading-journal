@@ -52,10 +52,10 @@ export const LogTradeModal = () => {
     setIsScanModalOpen,
   } = useTrading();
 
-  const [pair, setPair] = useState('EURUSD');
+  const [pair, setPair] = useState('XAUUSD');
   const [direction, setDirection] = useState('buy'); // 'buy' or 'sell'
   const [lots, setLots] = useState('0.50');
-  const [entryPrice, setEntryPrice] = useState('1.0850');
+  const [entryPrice, setEntryPrice] = useState('2740.00');
   const [stopLoss, setStopLoss] = useState('');
   const [takeProfit, setTakeProfit] = useState('');
   const [session, setSession] = useState('London');
@@ -75,10 +75,10 @@ export const LogTradeModal = () => {
 
   useEffect(() => {
     if (isLogTradeOpen) {
-      setPair('EURUSD');
+      setPair('XAUUSD');
       setDirection('buy');
       setLots('0.50');
-      setEntryPrice('1.0850');
+      setEntryPrice('2740.00');
       setStopLoss('');
       setTakeProfit('');
       setSession('London');
@@ -221,17 +221,39 @@ export const LogTradeModal = () => {
           <div className="grid grid-cols-12 gap-3">
             {/* Pair */}
             <div className="col-span-12 sm:col-span-4 space-y-1.5">
-              <label className="block text-[#94a3b8] text-xs font-medium font-sans">
-                Pair
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="block text-[#94a3b8] text-xs font-medium font-sans">
+                  Pair / Asset
+                </label>
+                <span className="text-[10px] text-[#00f098] font-mono font-semibold">Gold Default</span>
+              </div>
               <input
                 type="text"
                 value={pair}
                 onChange={(e) => setPair(e.target.value.toUpperCase())}
-                placeholder="EURUSD"
+                placeholder="XAUUSD"
                 required
                 className="w-full bg-[#080d12] text-[#00f098] font-bold text-sm font-mono border border-[#1e2c3d] rounded-xl px-3.5 py-2 focus:outline-hidden focus:border-[#00f098]/70 tracking-wide"
               />
+              <div className="flex items-center gap-1.5 pt-1 overflow-x-auto pb-0.5 no-scrollbar">
+                {['XAUUSD', 'EURUSD', 'GBPUSD', 'US30', 'BTCUSD'].map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => {
+                      setPair(p);
+                      if (p === 'XAUUSD') setEntryPrice('2740.00');
+                    }}
+                    className={`px-1.5 py-0.5 text-[9px] font-mono font-bold rounded border transition-all cursor-pointer ${
+                      pair === p
+                        ? 'bg-[#00f098]/20 text-[#00f098] border-[#00f098]/60 shadow-[0_0_8px_rgba(0,240,152,0.25)]'
+                        : 'bg-[#0b1219] text-[#64748b] border-[#182635] hover:text-[#94a3b8]'
+                    }`}
+                  >
+                    {p === 'XAUUSD' ? '★ GOLD' : p}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Direction */}
