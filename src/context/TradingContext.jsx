@@ -1,12 +1,61 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import confetti from 'canvas-confetti';
-import { initialTrades } from '../data/initialTrades';
 import { initialRules } from '../data/initialRules';
 import { calculateStats } from '../utils/calculations';
 import { setLiveExchangeRate, LIVE_USD_TO_INR_RATE } from '../utils/formatters';
 import { useAuth } from './AuthContext';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const TradingContext = createContext();
+
+const dbToTrade = (r) => ({
+  id: r.id,
+  pair: r.pair,
+  direction: r.direction,
+  lots: parseFloat(r.lots) || 0,
+  entryPrice: r.entry_price != null ? parseFloat(r.entry_price) : (r.entryPrice != null ? parseFloat(r.entryPrice) : undefined),
+  exitPrice: r.exit_price != null ? parseFloat(r.exit_price) : (r.exitPrice != null ? parseFloat(r.exitPrice) : undefined),
+  stopLoss: r.stop_loss != null ? parseFloat(r.stop_loss) : (r.stopLoss != null ? parseFloat(r.stopLoss) : undefined),
+  takeProfit: r.take_profit != null ? parseFloat(r.take_profit) : (r.takeProfit != null ? parseFloat(r.takeProfit) : undefined),
+  pnl: r.pnl != null ? parseFloat(r.pnl) : 0,
+  pips: r.pips != null ? parseFloat(r.pips) : 0,
+  rMultiple: r.r_multiple != null ? parseFloat(r.r_multiple) : (r.rMultiple != null ? parseFloat(r.rMultiple) : 0),
+  date: r.date,
+  time: r.time,
+  session: r.session,
+  status: r.status || 'CLOSED',
+  setupTag: r.setup_tag || r.setupTag,
+  tags: r.tags_json ? (typeof r.tags_json === 'string' ? JSON.parse(r.tags_json) : r.tags_json) : (r.tags || []),
+  emotion: r.emotion,
+  notes: r.notes,
+  screenshot: r.screenshot,
+  followedPlan: r.followed_plan !== undefined ? Boolean(r.followed_plan) : Boolean(r.followedPlan),
+});
+
+const tradeToDb = (t, userId) => ({
+  id: t.id,
+  user_id: userId,
+  pair: t.pair,
+  direction: t.direction,
+  lots: t.lots,
+  entry_price: t.entryPrice != null ? t.entryPrice : null,
+  exit_price: t.exitPrice != null ? t.exitPrice : null,
+  stop_loss: t.stopLoss != null ? t.stopLoss : null,
+  take_profit: t.takeProfit != null ? t.takeProfit : null,
+  pnl: t.pnl != null ? t.pnl : 0,
+  pips: t.pips != null ? t.pips : 0,
+  r_multiple: t.rMultiple != null ? t.rMultiple : 0,
+  date: t.date,
+  time: t.time || null,
+  session: t.session || null,
+  status: t.status || 'CLOSED',
+  setup_tag: t.setupTag || null,
+  tags_json: JSON.stringify(t.tags || []),
+  emotion: t.emotion || null,
+  notes: t.notes || '',
+  screenshot: t.screenshot || null,
+  followed_plan: t.followedPlan ? true : false,
+});
 
 export const TradingProvider = ({ children }) => {
   // Live market USD to INR conversion rate
@@ -51,35 +100,90 @@ export const TradingProvider = ({ children }) => {
   const [trades, setTrades] = useState([]);
   const [rules, setRules] = useState(initialRules);
 
-  // Load trades and rules from DB when authenticated
+  // Load trades and rules from Supabase Cloud DB or local fallback
   useEffect(() => {
-    if (token) {
-      fetch('/api/trades', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then((res) => (res.ok ? res.json() : null))
-        .then((data) => {
-          if (data && Array.isArray(data.trades)) {
-            setTrades(data.trades);
-          }
-        })
-        .catch((err) => console.warn('Could not load trades from DB:', err));
-
-      fetch('/api/rules', {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then((res) => (res.ok ? res.json() : null))
-        .then((data) => {
-          if (data && Array.isArray(data.rules) && data.rules.length > 0) {
-            setRules(data.rules);
-          }
-        })
-        .catch((err) => console.warn('Could not load rules from DB:', err));
-    } else {
+    if (!user) {
       setTrades([]);
       setRules(initialRules);
+      return;
     }
-  }, [token]);
+
+    const loadData = async () => {
+      // 1. Supabase Cloud DB Mode
+      if (isSupabaseConfigured && user.id) {
+        try {
+          const { data: tradesData, error: tradesErr } = await supabase
+            .from('trades')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('date', { ascending: false });
+
+          if (!tradesErr && Array.isArray(tradesData)) {
+            setTrades(tradesData.map(dbToTrade));
+          } else {
+            // Fallback to local storage for this user
+            const saved = localStorage.getItem(`pipdesk_trades_${user.id}`);
+            if (saved) setTrades(JSON.parse(saved));
+          }
+
+          const { data: rulesData, error: rulesErr } = await supabase
+            .from('rules')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('num', { ascending: true });
+
+          if (!rulesErr && Array.isArray(rulesData) && rulesData.length > 0) {
+            setRules(rulesData);
+          } else if (!rulesErr && Array.isArray(rulesData) && rulesData.length === 0) {
+            // Seed default rules for new user
+            const seed = initialRules.map((r) => ({
+              id: `rule-${Date.now()}-${r.num}`,
+              user_id: user.id,
+              num: r.num,
+              text: r.text,
+              active: true,
+            }));
+            await supabase.from('rules').insert(seed);
+            setRules(seed);
+          }
+        } catch (err) {
+          console.warn('Supabase fetch failed, fallback to local cache:', err);
+          const saved = localStorage.getItem(`pipdesk_trades_${user.id}`);
+          if (saved) setTrades(JSON.parse(saved));
+        }
+        return;
+      }
+
+      // 2. Express Backend Fallback
+      if (token) {
+        try {
+          const res = await fetch('/api/trades', {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data?.trades) setTrades(data.trades);
+          }
+        } catch (err) {
+          console.warn('Could not load trades from API:', err);
+        }
+
+        try {
+          const res = await fetch('/api/rules', {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (res.ok) {
+            const data = await res.json();
+            if (data?.rules) setRules(data.rules);
+          }
+        } catch (err) {
+          console.warn('Could not load rules from API:', err);
+        }
+      }
+    };
+
+    loadData();
+  }, [user, token]);
 
   const [currency, setCurrency] = useState(() => {
     try {
@@ -89,7 +193,7 @@ export const TradingProvider = ({ children }) => {
     }
   });
 
-  const [currentTab, setCurrentTab] = useState('dashboard'); // 'dashboard', 'trades', 'calendar', 'plan'
+  const [currentTab, setCurrentTab] = useState('dashboard');
 
   // Modals
   const [isLogTradeOpen, setIsLogTradeOpen] = useState(false);
@@ -100,22 +204,16 @@ export const TradingProvider = ({ children }) => {
   const [isImportExportOpen, setIsImportExportOpen] = useState(false);
   const [isScanModalOpen, setIsScanModalOpen] = useState(false);
 
-  // Sync to localStorage
+  // Sync to local cache per user
   useEffect(() => {
-    try {
-      localStorage.setItem('pipdesk_trades_v2', JSON.stringify(trades));
-    } catch (e) {
-      console.error('Failed to save trades to localStorage', e);
+    if (user?.id) {
+      try {
+        localStorage.setItem(`pipdesk_trades_${user.id}`, JSON.stringify(trades));
+      } catch (e) {
+        console.error('Failed to save trades to local cache', e);
+      }
     }
-  }, [trades]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('pipdesk_rules_v1', JSON.stringify(rules));
-    } catch (e) {
-      console.error('Failed to save rules to localStorage', e);
-    }
-  }, [rules]);
+  }, [trades, user]);
 
   useEffect(() => {
     try {
@@ -151,7 +249,13 @@ export const TradingProvider = ({ children }) => {
 
     setTrades((prev) => [tradeWithId, ...prev]);
 
-    if (token) {
+    if (isSupabaseConfigured && user?.id) {
+      try {
+        await supabase.from('trades').insert([tradeToDb(tradeWithId, user.id)]);
+      } catch (err) {
+        console.warn('Supabase insert failed:', err);
+      }
+    } else if (token) {
       try {
         await fetch('/api/trades', {
           method: 'POST',
@@ -183,7 +287,14 @@ export const TradingProvider = ({ children }) => {
 
     setTrades((prev) => [...formattedTrades, ...prev]);
 
-    if (token) {
+    if (isSupabaseConfigured && user?.id) {
+      try {
+        const rows = formattedTrades.map((t) => tradeToDb(t, user.id));
+        await supabase.from('trades').insert(rows);
+      } catch (err) {
+        console.warn('Supabase batch insert failed:', err);
+      }
+    } else if (token) {
       try {
         await fetch('/api/trades/batch', {
           method: 'POST',
@@ -223,7 +334,23 @@ export const TradingProvider = ({ children }) => {
       })
     );
 
-    if (token) {
+    if (isSupabaseConfigured && user?.id) {
+      try {
+        await supabase
+          .from('trades')
+          .update({
+            exit_price: closeData.exitPrice,
+            pnl: closeData.pnl,
+            pips: closeData.pips,
+            r_multiple: closeData.rMultiple,
+            status: 'CLOSED',
+          })
+          .eq('id', tradeId)
+          .eq('user_id', user.id);
+      } catch (err) {
+        console.warn('Supabase close trade failed:', err);
+      }
+    } else if (token) {
       try {
         await fetch(`/api/trades/${tradeId}`, {
           method: 'PUT',
@@ -246,7 +373,16 @@ export const TradingProvider = ({ children }) => {
       prev.map((trade) => (trade.id === tradeId ? { ...trade, ...updatedData } : trade))
     );
 
-    if (token) {
+    if (isSupabaseConfigured && user?.id) {
+      try {
+        const dbPayload = tradeToDb({ id: tradeId, ...updatedData }, user.id);
+        delete dbPayload.id;
+        delete dbPayload.user_id;
+        await supabase.from('trades').update(dbPayload).eq('id', tradeId).eq('user_id', user.id);
+      } catch (err) {
+        console.warn('Supabase update trade failed:', err);
+      }
+    } else if (token) {
       try {
         await fetch(`/api/trades/${tradeId}`, {
           method: 'PUT',
@@ -267,7 +403,13 @@ export const TradingProvider = ({ children }) => {
   const deleteTrade = async (tradeId) => {
     setTrades((prev) => prev.filter((trade) => trade.id !== tradeId));
 
-    if (token) {
+    if (isSupabaseConfigured && user?.id) {
+      try {
+        await supabase.from('trades').delete().eq('id', tradeId).eq('user_id', user.id);
+      } catch (err) {
+        console.warn('Supabase delete trade failed:', err);
+      }
+    } else if (token) {
       try {
         await fetch(`/api/trades/${tradeId}`, {
           method: 'DELETE',
@@ -283,10 +425,17 @@ export const TradingProvider = ({ children }) => {
 
   const clearAllTrades = async () => {
     setTrades([]);
-    localStorage.removeItem('pipdesk_trades_v1');
-    localStorage.setItem('pipdesk_trades_v2', JSON.stringify([]));
+    if (user?.id) {
+      localStorage.removeItem(`pipdesk_trades_${user.id}`);
+    }
 
-    if (token) {
+    if (isSupabaseConfigured && user?.id) {
+      try {
+        await supabase.from('trades').delete().eq('user_id', user.id);
+      } catch (err) {
+        console.warn('Supabase clear trades failed:', err);
+      }
+    } else if (token) {
       try {
         await fetch('/api/trades', {
           method: 'DELETE',
@@ -299,11 +448,24 @@ export const TradingProvider = ({ children }) => {
   };
 
   const toggleRule = async (ruleId) => {
+    let nextActive = true;
     setRules((prev) =>
-      prev.map((r) => (r.id === ruleId ? { ...r, active: !r.active } : r))
+      prev.map((r) => {
+        if (r.id === ruleId) {
+          nextActive = !r.active;
+          return { ...r, active: nextActive };
+        }
+        return r;
+      })
     );
 
-    if (token) {
+    if (isSupabaseConfigured && user?.id) {
+      try {
+        await supabase.from('rules').update({ active: nextActive }).eq('id', ruleId).eq('user_id', user.id);
+      } catch (err) {
+        console.warn('Supabase toggle rule failed:', err);
+      }
+    } else if (token) {
       try {
         await fetch(`/api/rules/${ruleId}/toggle`, {
           method: 'PUT',
@@ -328,7 +490,19 @@ export const TradingProvider = ({ children }) => {
 
     setRules((prev) => [...prev, newRule]);
 
-    if (token) {
+    if (isSupabaseConfigured && user?.id) {
+      try {
+        await supabase.from('rules').insert([{
+          id: tempId,
+          user_id: user.id,
+          num: nextNum,
+          text: text.trim(),
+          active: true,
+        }]);
+      } catch (err) {
+        console.warn('Supabase add rule failed:', err);
+      }
+    } else if (token) {
       try {
         const res = await fetch('/api/rules', {
           method: 'POST',
@@ -358,7 +532,13 @@ export const TradingProvider = ({ children }) => {
         }))
     );
 
-    if (token) {
+    if (isSupabaseConfigured && user?.id) {
+      try {
+        await supabase.from('rules').delete().eq('id', ruleId).eq('user_id', user.id);
+      } catch (err) {
+        console.warn('Supabase delete rule failed:', err);
+      }
+    } else if (token) {
       try {
         await fetch(`/api/rules/${ruleId}`, {
           method: 'DELETE',
@@ -374,48 +554,20 @@ export const TradingProvider = ({ children }) => {
     setTrades([]);
     setRules(initialRules);
     setCurrency('USD');
-    localStorage.removeItem('pipdesk_trades_v1');
-    localStorage.setItem('pipdesk_trades_v2', JSON.stringify([]));
   };
 
   const exportCSV = () => {
     const headers = [
-      'id',
-      'pair',
-      'direction',
-      'session',
-      'lots',
-      'entryPrice',
-      'exitPrice',
-      'stopLoss',
-      'takeProfit',
-      'pnl',
-      'rMultiple',
-      'pips',
-      'date',
-      'status',
-      'setupTag',
-      'followedPlan',
-      'notes',
+      'id', 'pair', 'direction', 'session', 'lots', 'entryPrice', 'exitPrice',
+      'stopLoss', 'takeProfit', 'pnl', 'rMultiple', 'pips', 'date', 'status',
+      'setupTag', 'followedPlan', 'notes',
     ];
 
     const rows = trades.map((t) => [
-      t.id,
-      t.pair,
-      t.direction,
-      t.session,
-      t.lots,
-      t.entryPrice ?? '',
-      t.exitPrice ?? '',
-      t.stopLoss ?? '',
-      t.takeProfit ?? '',
-      t.pnl ?? '',
-      t.rMultiple ?? '',
-      t.pips ?? '',
-      t.date,
-      t.status,
-      t.setupTag ?? '',
-      t.followedPlan ? 'yes' : 'no',
+      t.id, t.pair, t.direction, t.session, t.lots,
+      t.entryPrice ?? '', t.exitPrice ?? '', t.stopLoss ?? '', t.takeProfit ?? '',
+      t.pnl ?? '', t.rMultiple ?? '', t.pips ?? '', t.date, t.status,
+      t.setupTag ?? '', t.followedPlan ? 'yes' : 'no',
       `"${(t.notes || '').replace(/"/g, '""')}"`,
     ]);
 
@@ -487,4 +639,3 @@ export const useTrading = () => {
   }
   return context;
 };
-

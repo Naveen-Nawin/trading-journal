@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const AuthContext = createContext(null);
 
@@ -11,14 +12,9 @@ export const AuthProvider = ({ children }) => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authError, setAuthError] = useState('');
 
-  // Validate token and 5-hour session on mount
+  // Validate session and 5-hour limit on mount
   useEffect(() => {
-    const fetchMe = async () => {
-      if (!token) {
-        setIsLoading(false);
-        return;
-      }
-
+    const initAuth = async () => {
       // Check 5-hour session expiry
       const sessionStart = parseInt(localStorage.getItem('pipdesk_session_start') || '0', 10);
       if (sessionStart && Date.now() - sessionStart >= FIVE_HOURS_MS) {
@@ -27,33 +23,76 @@ export const AuthProvider = ({ children }) => {
         return;
       }
 
-      try {
-        const res = await fetch('/api/auth/me', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data.user);
-        } else {
-          // Token expired or invalid
-          logout('Session invalid or expired. Please sign in again.');
+      if (isSupabaseConfigured) {
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session && session.user) {
+            setUser({
+              id: session.user.id,
+              email: session.user.email,
+              name: session.user.user_metadata?.name || session.user.email.split('@')[0],
+            });
+            setToken(session.access_token);
+          } else {
+            // Check fallback token or prompt login
+            const savedUser = localStorage.getItem('pipdesk_user_obj');
+            if (token && savedUser) {
+              try { setUser(JSON.parse(savedUser)); } catch { /* ignore */ }
+            }
+          }
+        } catch (err) {
+          console.warn('Supabase session check error:', err);
+        } finally {
+          setIsLoading(false);
         }
-      } catch (err) {
-        console.warn('Auth check offline or failed:', err);
-      } finally {
+      } else if (token) {
+        try {
+          const res = await fetch('/api/auth/me', {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setUser(data.user);
+          } else {
+            logout('Session invalid or expired. Please sign in again.');
+          }
+        } catch (err) {
+          console.warn('Backend offline, using cached session:', err);
+          const savedUser = localStorage.getItem('pipdesk_user_obj');
+          if (savedUser) setUser(JSON.parse(savedUser));
+        } finally {
+          setIsLoading(false);
+        }
+      } else {
         setIsLoading(false);
       }
     };
 
-    fetchMe();
-  }, [token]);
+    initAuth();
+
+    // Listen to Supabase auth state changes
+    if (isSupabaseConfigured) {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (session?.user) {
+          const userObj = {
+            id: session.user.id,
+            email: session.user.email,
+            name: session.user.user_metadata?.name || session.user.email.split('@')[0],
+          };
+          setUser(userObj);
+          setToken(session.access_token);
+          localStorage.setItem('pipdesk_user_obj', JSON.stringify(userObj));
+          localStorage.setItem('pipdesk_auth_token', session.access_token);
+        }
+      });
+
+      return () => subscription.unsubscribe();
+    }
+  }, []);
 
   // Periodic check: automatically log out after 5 hours
   useEffect(() => {
-    if (!token) return;
+    if (!user) return;
 
     const interval = setInterval(() => {
       const sessionStart = parseInt(localStorage.getItem('pipdesk_session_start') || '0', 10);
@@ -63,24 +102,51 @@ export const AuthProvider = ({ children }) => {
     }, 30000); // Check every 30 seconds
 
     return () => clearInterval(interval);
-  }, [token]);
+  }, [user]);
 
   const login = async (email, password) => {
     setAuthError('');
+    const cleanEmail = email.trim().toLowerCase();
+
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password,
+      });
+
+      if (error) {
+        setAuthError(error.message);
+        throw error;
+      }
+
+      const userObj = {
+        id: data.user.id,
+        email: data.user.email,
+        name: data.user.user_metadata?.name || cleanEmail.split('@')[0],
+      };
+
+      localStorage.setItem('pipdesk_auth_token', data.session.access_token);
+      localStorage.setItem('pipdesk_user_obj', JSON.stringify(userObj));
+      localStorage.setItem('pipdesk_session_start', Date.now().toString());
+      setToken(data.session.access_token);
+      setUser(userObj);
+      setIsAuthModalOpen(false);
+      return data;
+    }
+
+    // Fallback to Express backend if Supabase not configured
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: cleanEmail, password }),
       });
 
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Login failed');
-      }
+      if (!res.ok) throw new Error(data.error || 'Login failed');
 
       localStorage.setItem('pipdesk_auth_token', data.token);
+      localStorage.setItem('pipdesk_user_obj', JSON.stringify(data.user));
       localStorage.setItem('pipdesk_session_start', Date.now().toString());
       setToken(data.token);
       setUser(data.user);
@@ -94,20 +160,60 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (email, password, name) => {
     setAuthError('');
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanName = (name && name.trim()) || cleanEmail.split('@')[0];
+
+    if (isSupabaseConfigured) {
+      const { data, error } = await supabase.auth.signUp({
+        email: cleanEmail,
+        password,
+        options: {
+          data: { name: cleanName },
+        },
+      });
+
+      if (error) {
+        setAuthError(error.message);
+        throw error;
+      }
+
+      // If session returned immediately (email confirmation disabled or auto-confirmed)
+      if (data?.session) {
+        const userObj = {
+          id: data.user.id,
+          email: data.user.email,
+          name: cleanName,
+        };
+        localStorage.setItem('pipdesk_auth_token', data.session.access_token);
+        localStorage.setItem('pipdesk_user_obj', JSON.stringify(userObj));
+        localStorage.setItem('pipdesk_session_start', Date.now().toString());
+        setToken(data.session.access_token);
+        setUser(userObj);
+        setIsAuthModalOpen(false);
+      } else if (data?.user) {
+        // Try logging in directly
+        try {
+          return await login(cleanEmail, password);
+        } catch {
+          setAuthError('Account created! Please check your email or log in.');
+        }
+      }
+      return data;
+    }
+
+    // Fallback to Express backend
     try {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, name }),
+        body: JSON.stringify({ email: cleanEmail, password, name: cleanName }),
       });
 
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Registration failed');
-      }
+      if (!res.ok) throw new Error(data.error || 'Registration failed');
 
       localStorage.setItem('pipdesk_auth_token', data.token);
+      localStorage.setItem('pipdesk_user_obj', JSON.stringify(data.user));
       localStorage.setItem('pipdesk_session_start', Date.now().toString());
       setToken(data.token);
       setUser(data.user);
@@ -119,8 +225,14 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = (reason = '') => {
+  const logout = async (reason = '') => {
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.auth.signOut();
+      } catch { /* ignore */ }
+    }
     localStorage.removeItem('pipdesk_auth_token');
+    localStorage.removeItem('pipdesk_user_obj');
     localStorage.removeItem('pipdesk_session_start');
     setToken(null);
     setUser(null);
