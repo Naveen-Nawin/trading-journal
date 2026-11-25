@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Save, ImagePlus, AlertCircle } from 'lucide-react';
 import { useTrading } from '../../context/TradingContext';
+import { SESSIONS_LIST } from '../../utils/sessionConfig';
 
 export const EditTradeModal = () => {
   const { tradeToEdit, setTradeToEdit, updateTrade, currency } = useTrading();
@@ -110,19 +111,8 @@ export const EditTradeModal = () => {
             </div>
           </div>
 
-          {/* Session, Lots, Date */}
-          <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label className="block text-muted-foreground text-[11px] font-bold tracking-wider uppercase mb-1.5">
-                Session
-              </label>
-              <input
-                type="text"
-                value={formData.session}
-                onChange={(e) => handleChange('session', e.target.value)}
-                className="w-full bg-secondary/40 text-foreground text-xs border border-border focus:border-primary focus:ring-1 focus:ring-primary rounded-xl px-3 py-2.5 transition"
-              />
-            </div>
+          {/* Lots & Date */}
+          <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-muted-foreground text-[11px] font-bold tracking-wider uppercase mb-1.5">
                 Lots
@@ -145,6 +135,38 @@ export const EditTradeModal = () => {
                 onChange={(e) => handleChange('date', e.target.value)}
                 className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border focus:border-primary focus:ring-1 focus:ring-primary rounded-xl px-3 py-2.5 transition"
               />
+            </div>
+          </div>
+
+          {/* Session Selector (Color-Coded Interactive Selection) */}
+          <div className="space-y-1.5 p-3 rounded-xl border border-border/80 bg-secondary/20">
+            <div className="flex items-center justify-between">
+              <label className="block text-muted-foreground text-[11px] font-bold tracking-wider uppercase">
+                Trading Session
+              </label>
+              <span className="text-[11px] font-mono text-muted-foreground">
+                Selected: <span className="font-bold text-foreground">{formData.session || 'London'}</span>
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1">
+              {SESSIONS_LIST.map((item) => {
+                const isSelected = formData.session === item.id || formData.session === item.label;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => handleChange('session', item.id)}
+                    className={`py-2 px-2 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      isSelected
+                        ? item.activeBg
+                        : 'bg-secondary/40 text-muted-foreground border-border hover:text-foreground hover:bg-secondary/70'
+                    }`}
+                  >
+                    <span className={`w-2 h-2 rounded-full shrink-0 ${item.dot} ${isSelected ? 'animate-pulse' : 'opacity-70'}`} />
+                    <span className="truncate">{item.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 

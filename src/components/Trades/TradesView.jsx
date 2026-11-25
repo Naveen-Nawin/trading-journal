@@ -21,6 +21,7 @@ import {
   formatPips,
   formatDateDisplay,
 } from '../../utils/formatters';
+import { getSessionConfig } from '../../utils/sessionConfig';
 
 export const TradesView = () => {
   const {
@@ -351,8 +352,18 @@ export const TradesView = () => {
                 </div>
 
                 <div className="flex items-center justify-between text-xs font-num text-muted-foreground">
-                  <span>
-                    {formatDateDisplay(t.date)} · {t.session}
+                  <span className="flex items-center gap-1.5">
+                    <span>{formatDateDisplay(t.date)}</span>
+                    <span>·</span>
+                    {(() => {
+                      const sc = getSessionConfig(t.session);
+                      return (
+                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.2 rounded text-[10px] font-semibold border ${sc.bg} ${sc.color} ${sc.border}`}>
+                          <span className={`w-1 h-1 rounded-full ${sc.dot}`} />
+                          <span>{sc.label}</span>
+                        </span>
+                      );
+                    })()}
                   </span>
                   <span>
                     {isOpen ? t.entryPrice : `${t.entryPrice} → ${t.exitPrice}`}
@@ -547,8 +558,16 @@ export const TradesView = () => {
                         </td>
 
                         {/* Session */}
-                        <td className="py-3.5 px-3 text-muted-foreground">
-                          {trade.session}
+                        <td className="py-3.5 px-3">
+                          {(() => {
+                            const sc = getSessionConfig(trade.session);
+                            return (
+                              <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-[11px] font-semibold border ${sc.bg} ${sc.color} ${sc.border}`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${sc.dot}`} />
+                                <span>{sc.label}</span>
+                              </span>
+                            );
+                          })()}
                         </td>
 
                         {/* Lots */}

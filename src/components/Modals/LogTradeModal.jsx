@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { X, ImagePlus, Camera, Sparkles, Lock, AlertTriangle, ShieldAlert } from 'lucide-react';
 import { useTrading } from '../../context/TradingContext';
+import { SESSIONS_LIST } from '../../utils/sessionConfig';
 
 const SESSIONS = [
   { value: 'London', label: 'London' },
@@ -384,8 +385,8 @@ export const LogTradeModal = () => {
             </div>
           </div>
 
-          {/* Row 2: Entry Price, Stop Loss, Take Profit, Session */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {/* Row 2: Entry Price, Stop Loss, Take Profit */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="space-y-1.5">
               <label className="block text-muted-foreground text-xs font-medium">
                 Entry price
@@ -403,7 +404,7 @@ export const LogTradeModal = () => {
 
             <div className="space-y-1.5">
               <label className="block text-loss text-xs font-medium">
-                Stop loss
+                Stop loss (SL)
               </label>
               <input
                 type="number"
@@ -417,7 +418,7 @@ export const LogTradeModal = () => {
 
             <div className="space-y-1.5">
               <label className="block text-profit text-xs font-medium">
-                Take profit
+                Take profit (TP)
               </label>
               <input
                 type="number"
@@ -428,27 +429,37 @@ export const LogTradeModal = () => {
                 className="w-full bg-secondary/40 text-foreground font-num text-xs border border-profit/35 rounded-xl px-3 py-2.5 placeholder-muted-foreground/50 focus:outline-hidden focus:border-profit"
               />
             </div>
+          </div>
 
-            <div className="space-y-1.5">
-              <label className="block text-muted-foreground text-xs font-medium">
-                Session
+          {/* Row 2b: Trading Session (Color-Coded Interactive Selection) */}
+          <div className="space-y-1.5 p-3.5 rounded-xl border border-border/80 bg-secondary/20">
+            <div className="flex items-center justify-between">
+              <label className="block text-muted-foreground text-[11px] font-bold tracking-wider uppercase">
+                Trading Session
               </label>
-              <div className="relative">
-                <select
-                  value={session}
-                  onChange={(e) => setSession(e.target.value)}
-                  className="w-full appearance-none bg-secondary/40 text-foreground text-xs border border-border rounded-xl px-3 py-2.5 pr-8 focus:outline-hidden focus:border-primary cursor-pointer"
-                >
-                  {SESSIONS.map((s) => (
-                    <option key={s.value} value={s.value}>
-                      {s.label}
-                    </option>
-                  ))}
-                </select>
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-[10px]">
-                  ▼
-                </span>
-              </div>
+              <span className="text-[11px] font-mono text-muted-foreground">
+                Active: <span className="font-bold text-foreground">{session}</span>
+              </span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1">
+              {SESSIONS_LIST.map((item) => {
+                const isSelected = session === item.id || session === item.label;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setSession(item.id)}
+                    className={`py-2 px-2 rounded-xl border text-xs font-semibold flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                      isSelected
+                        ? item.activeBg
+                        : 'bg-secondary/40 text-muted-foreground border-border hover:text-foreground hover:bg-secondary/70'
+                    }`}
+                  >
+                    <span className={`w-2 h-2 rounded-full shrink-0 ${item.dot} ${isSelected ? 'animate-pulse' : 'opacity-70'}`} />
+                    <span className="truncate">{item.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 
