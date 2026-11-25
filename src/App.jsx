@@ -13,11 +13,12 @@ import { ConfirmDeleteModal } from './components/Modals/ConfirmDeleteModal';
 import { DayTradesModal } from './components/Modals/DayTradesModal';
 import { ImportExportModal } from './components/Modals/ImportExportModal';
 import { ScanTradesModal } from './components/Modals/ScanTradesModal';
+import { LightboxModal } from './components/Modals/LightboxModal';
 import { AuthModal } from './components/Auth/AuthModal';
 import { useAuth } from './context/AuthContext';
 
 export function AppContent() {
-  const { currentTab, setIsLogTradeOpen } = useTrading();
+  const { currentTab, setIsLogTradeOpen, currency, setCurrency } = useTrading();
   const { isAuthenticated, isLoading } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -49,8 +50,8 @@ export function AppContent() {
   return (
     <div className="min-h-screen bg-[#090e17] terminal-grid text-foreground flex flex-col lg:flex-row relative selection:bg-primary/25">
       {/* Mobile Header Bar */}
-      <div className="lg:hidden flex items-center justify-between p-4 bg-card/90 border-b border-border sticky top-0 z-30 backdrop-blur-xl">
-        <div className="flex items-center gap-2.5">
+      <div className="lg:hidden flex items-center justify-between p-3.5 bg-card/90 border-b border-border sticky top-0 z-30 backdrop-blur-xl">
+        <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-lg bg-primary/15 border border-primary/40 flex items-center justify-center">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
               <path d="M3 17.5 8 11l4 3.5L21 5" stroke="hsl(160 84% 45%)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
@@ -59,12 +60,33 @@ export function AppContent() {
           </div>
           <span className="font-num font-bold tracking-tight text-sm text-white">PIPDESK</span>
         </div>
-        <button
-          onClick={() => setMobileOpen(!mobileOpen)}
-          className="p-2 text-muted-foreground hover:text-foreground rounded-lg bg-secondary border border-border"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
+
+        <div className="flex items-center gap-2">
+          {/* Quick Currency Toggle */}
+          <button
+            onClick={() => setCurrency(currency === 'USD' ? 'INR' : 'USD')}
+            className="px-2 py-1 rounded-lg bg-secondary/60 border border-border text-[11px] font-num text-foreground flex items-center gap-1 cursor-pointer"
+            title="Switch Currency"
+          >
+            <span>{currency === 'USD' ? '$ USD' : '₹ INR'}</span>
+          </button>
+
+          {/* Quick Log Button */}
+          <button
+            onClick={() => setIsLogTradeOpen(true)}
+            className="flex items-center gap-1 px-3 py-1.5 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>Log</span>
+          </button>
+
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg bg-secondary border border-border cursor-pointer ml-1"
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       {/* Sidebar Navigation */}
@@ -95,6 +117,7 @@ export function AppContent() {
       <DayTradesModal />
       <ImportExportModal />
       <ScanTradesModal />
+      <LightboxModal />
       <AuthModal />
     </div>
   );

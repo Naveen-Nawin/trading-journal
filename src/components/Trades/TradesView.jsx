@@ -34,6 +34,7 @@ export const TradesView = () => {
     setIsImportExportOpen,
     setIsScanModalOpen,
     logMultipleTrades,
+    setLightbox,
   } = useTrading();
 
   // Selection & Bulk Actions State
@@ -288,8 +289,165 @@ export const TradesView = () => {
         ) : null}
       </div>
 
-      {/* Trades Table */}
-      <div className="rounded-xl border border-border bg-card/70 backdrop-blur-sm overflow-hidden shadow-xs animate-rise">
+      {/* Mobile Trade Cards (block md:hidden) */}
+      <div className="block md:hidden space-y-3">
+        {filteredTrades.length === 0 ? (
+          <div className="rounded-xl border border-border bg-card/70 p-8 text-center text-muted-foreground text-xs font-num">
+            No trades match the selected filters.
+          </div>
+        ) : (
+          filteredTrades.map((t) => {
+            const isOpen = t.status === 'OPEN';
+            const isBuy = t.direction === 'BUY';
+            const isProfit = !isOpen && t.pnl > 0;
+            const isLoss = !isOpen && t.pnl < 0;
+            const isExpanded = !!expandedRows[t.id];
+
+            return (
+              <div
+                key={`mobile-${t.id}`}
+                className="rounded-xl border border-border bg-card/70 backdrop-blur-sm p-4 space-y-3 animate-rise"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => toggleRow(t.id)}
+                      className="text-muted-foreground hover:text-profit"
+                    >
+                      {isExpanded ? <ChevronDown className="w-4 h-4 text-profit" /> : <ChevronRight className="w-4 h-4" />}
+                    </button>
+                    <span className="font-num font-bold text-foreground text-sm tracking-wide">
+                      {t.pair}
+                    </span>
+                    <span
+                      className={`text-[9px] font-bold px-1.5 py-0.5 rounded tracking-wider uppercase font-num ${
+                        isBuy
+                          ? 'bg-profit/15 text-profit border border-profit/30'
+                          : 'bg-loss/15 text-loss border border-loss/30'
+                      }`}
+                    >
+                      {t.direction}
+                    </span>
+                    <span className="font-num text-xs text-muted-foreground">
+                      {t.lots} lots
+                    </span>
+                  </div>
+
+                  <div>
+                    {isOpen ? (
+                      <span className="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-400 border border-sky-500/30">
+                        OPEN
+                      </span>
+                    ) : (
+                      <span
+                        className={`font-num font-bold text-sm ${
+                          isProfit ? 'text-profit' : isLoss ? 'text-loss' : 'text-muted-foreground'
+                        }`}
+                      >
+                        {formatCurrencyRaw(t.pnl, currency, true)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-xs font-num text-muted-foreground">
+                  <span>
+                    {formatDateDisplay(t.date)} · {t.session}
+                  </span>
+                  <span>
+                    {isOpen ? t.entryPrice : `${t.entryPrice} → ${t.exitPrice}`}
+                  </span>
+                </div>
+
+                {t.notes && (
+                  <p className="text-xs text-foreground/80 line-clamp-2 bg-secondary/30 p-2.5 rounded-lg border border-border/50">
+                    {t.notes}
+                  </p>
+                )}
+
+                {/* Mobile Expanded Details */}
+                {isExpanded && (
+                  <div className="pt-2 border-t border-border space-y-2 text-xs font-num">
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>SL / TP:</span>
+                      <span>
+                        <span className="text-loss">{t.stopLoss || '—'}</span> / <span className="text-profit">{t.takeProfit || '—'}</span>
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-muted-foreground">
+                      <span>R-Multiple / Pips:</span>
+                      <span>{formatR(t.rMultiple)} · {formatPips(t.pips)} pips</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1 pt-1">
+                      {(t.tags || []).map((tg) => (
+                        <span key={tg} className="px-2 py-0.5 rounded-md text-[10px] font-num bg-sky-500/10 border border-sky-500/30 text-sky-400">
+                          {tg}
+                        </span>
+                      ))}
+                      <span className={`px-2 py-0.5 rounded-md text-[10px] border ${
+                        t.followedPlan ? 'bg-profit/15 text-profit border-profit/30' : 'bg-loss/15 text-loss border-loss/30'
+                      }`}>
+                        {t.followedPlan ? '✓ followed plan' : '✗ broke plan'}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between pt-1">
+                  <div className="flex items-center gap-2">
+                    {t.screenshot && (
+                      <button
+                        type="button"
+                        onClick={() => setLightbox({ url: t.screenshot, title: `${t.pair} Entry Chart`, subtitle: `${t.direction} · ${t.date}` })}
+                        className="text-xs text-profit hover:underline font-num flex items-center gap-1 cursor-pointer"
+                      >
+                        <ImageIcon className="w-3.5 h-3.5" /> Entry
+                      </button>
+                    )}
+                    {t.exitScreenshot && (
+                      <button
+                        type="button"
+                        onClick={() => setLightbox({ url: t.exitScreenshot, title: `${t.pair} Exit Chart`, subtitle: `${t.direction} · ${t.date}` })}
+                        className="text-xs text-sky-400 hover:underline font-num flex items-center gap-1 cursor-pointer"
+                      >
+                        <ImageIcon className="w-3.5 h-3.5" /> Exit
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    {isOpen && (
+                      <button
+                        onClick={() => setTradeToClose(t)}
+                        className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-profit/15 text-profit border border-profit/35 cursor-pointer"
+                      >
+                        Close
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setTradeToEdit(t)}
+                      className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary cursor-pointer"
+                      title="Edit"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => setTradeToDelete(t)}
+                      className="p-1.5 text-muted-foreground hover:text-loss rounded-lg hover:bg-secondary cursor-pointer"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+
+      {/* Desktop Trades Table (hidden md:block) */}
+      <div className="hidden md:block rounded-xl border border-border bg-card/70 backdrop-blur-sm overflow-hidden shadow-xs animate-rise">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -524,11 +682,15 @@ export const TradesView = () => {
                                     </span>
                                   </div>
                                   <div className="flex justify-between text-muted-foreground">
-                                    <span>Setup Tag:</span>
-                                    <span className="font-num px-2 py-0.5 rounded-md bg-secondary text-profit border border-profit/30">
-                                      {trade.setupTag || 'General'}
-                                    </span>
+                                    <span>Session:</span>
+                                    <span className="text-foreground">{trade.session}</span>
                                   </div>
+                                  {trade.emotion && (
+                                    <div className="flex justify-between text-muted-foreground">
+                                      <span>Emotion:</span>
+                                      <span className="text-foreground capitalize">{trade.emotion}</span>
+                                    </div>
+                                  )}
                                   <div className="flex justify-between text-muted-foreground">
                                     <span>Followed Plan:</span>
                                     <span className="flex items-center gap-1 font-semibold">
@@ -541,6 +703,20 @@ export const TradesView = () => {
                                           <XCircle className="w-3.5 h-3.5" /> No
                                         </span>
                                       )}
+                                    </span>
+                                  </div>
+
+                                  {/* Setup Tags Pills */}
+                                  <div className="pt-2 flex flex-wrap gap-1.5">
+                                    {(trade.tags || [trade.setupTag || 'general']).map((t) => (
+                                      <span key={t} className="px-2 py-0.5 rounded-md text-[10px] font-num bg-sky-500/10 border border-sky-500/30 text-sky-400">
+                                        {t}
+                                      </span>
+                                    ))}
+                                    <span className={`px-2 py-0.5 rounded-md text-[10px] border ${
+                                      trade.followedPlan ? 'bg-profit/15 text-profit border-profit/30' : 'bg-loss/15 text-loss border-loss/30'
+                                    }`}>
+                                      {trade.followedPlan ? '✓ followed plan' : '✗ broke plan'}
                                     </span>
                                   </div>
                                 </div>
@@ -572,14 +748,17 @@ export const TradesView = () => {
                                         alt="Entry trade chart"
                                         className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                                       />
-                                      <a
-                                        href={trade.screenshot}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="absolute inset-0 bg-background/60 backdrop-blur-xs opacity-0 group-hover:opacity-100 flex items-center justify-center text-foreground text-xs gap-1 transition"
+                                      <button
+                                        type="button"
+                                        onClick={() => setLightbox({
+                                          url: trade.screenshot,
+                                          title: `${trade.pair} Entry Chart`,
+                                          subtitle: `${trade.direction} · ${trade.session} · ${trade.date}`
+                                        })}
+                                        className="absolute inset-0 bg-background/60 backdrop-blur-xs opacity-0 group-hover:opacity-100 flex items-center justify-center text-foreground text-xs gap-1 transition cursor-pointer"
                                       >
-                                        <ExternalLink className="w-3.5 h-3.5" /> View Full
-                                      </a>
+                                        <ExternalLink className="w-3.5 h-3.5" /> View Lightbox
+                                      </button>
                                     </div>
                                   ) : (
                                     <div className="h-16 rounded-xl border border-dashed border-border bg-card/40 flex items-center justify-center text-muted-foreground text-xs gap-1.5">
@@ -603,14 +782,17 @@ export const TradesView = () => {
                                         alt="Exit trade chart"
                                         className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                                       />
-                                      <a
-                                        href={trade.exitScreenshot}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="absolute inset-0 bg-background/60 backdrop-blur-xs opacity-0 group-hover:opacity-100 flex items-center justify-center text-foreground text-xs gap-1 transition"
+                                      <button
+                                        type="button"
+                                        onClick={() => setLightbox({
+                                          url: trade.exitScreenshot,
+                                          title: `${trade.pair} Exit Chart`,
+                                          subtitle: `${trade.direction} · ${trade.session} · ${trade.date}`
+                                        })}
+                                        className="absolute inset-0 bg-background/60 backdrop-blur-xs opacity-0 group-hover:opacity-100 flex items-center justify-center text-foreground text-xs gap-1 transition cursor-pointer"
                                       >
-                                        <ExternalLink className="w-3.5 h-3.5" /> View Full
-                                      </a>
+                                        <ExternalLink className="w-3.5 h-3.5" /> View Lightbox
+                                      </button>
                                     </div>
                                   ) : (
                                     <div className="h-16 rounded-xl border border-dashed border-border bg-card/40 flex items-center justify-center text-muted-foreground text-xs gap-1.5">

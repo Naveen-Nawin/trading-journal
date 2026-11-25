@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import confetti from 'canvas-confetti';
 import { initialRules } from '../data/initialRules';
+import { defaultTrades } from '../data/seedData';
 import { calculateStats } from '../utils/calculations';
 import { setLiveExchangeRate, LIVE_USD_TO_INR_RATE } from '../utils/formatters';
 import { useAuth } from './AuthContext';
@@ -124,6 +125,38 @@ export const TradingProvider = ({ children }) => {
   // Load user trades (starts empty until user authenticates)
   const [trades, setTrades] = useState([]);
   const [rules, setRules] = useState(initialRules);
+  const [lightbox, setLightbox] = useState(null);
+
+  const loadSampleTrades = async () => {
+    const formatted = defaultTrades.map((t, idx) => ({
+      id: t.id || `tr-sample-${Date.now()}-${idx}`,
+      pair: (t.pair || 'XAUUSD').toUpperCase(),
+      direction: (t.direction || 'BUY').toUpperCase(),
+      lots: parseFloat(t.lots) || 0.1,
+      entryPrice: parseFloat(t.entry_price || t.entryPrice) || 0,
+      exitPrice: t.exit_price != null ? parseFloat(t.exit_price) : (t.exitPrice != null ? parseFloat(t.exitPrice) : null),
+      stopLoss: t.stop_loss != null ? parseFloat(t.stop_loss) : (t.stopLoss != null ? parseFloat(t.stopLoss) : null),
+      takeProfit: t.take_profit != null ? parseFloat(t.take_profit) : (t.takeProfit != null ? parseFloat(t.takeProfit) : null),
+      pnl: t.pnl != null ? parseFloat(t.pnl) : (t.status === 'open' ? null : 0),
+      pips: t.pips != null ? parseFloat(t.pips) : null,
+      rMultiple: t.r_multiple != null ? parseFloat(t.r_multiple) : null,
+      date: t.closed_at || t.opened_at || new Date().toISOString().slice(0, 10),
+      session: t.session === 'london' ? 'London' : t.session === 'newyork' ? 'New York' : t.session === 'tokyo' ? 'Tokyo' : t.session === 'sydney' ? 'Sydney' : 'London/NY Overlap',
+      status: (t.status || (t.pnl != null ? 'closed' : 'open')).toUpperCase(),
+      setupTag: (t.tags && t.tags[0]) || 'trend',
+      tags: t.tags || [],
+      emotion: t.emotion || 'calm',
+      notes: t.notes || 'Sample trade — explore freely.',
+      screenshot: t.screenshot_path || '',
+      exitScreenshot: null,
+      followedPlan: Boolean(t.followed_plan),
+    }));
+
+    setTrades(formatted);
+    if (user?.id) {
+      localStorage.setItem(`pipdesk_trades_${user.id}`, JSON.stringify(formatted));
+    }
+  };
 
   // Load trades and rules from Supabase Cloud DB or local fallback
   useEffect(() => {
@@ -715,6 +748,9 @@ export const TradingProvider = ({ children }) => {
         resetToDefaults,
         exportCSV,
         importTrades,
+        lightbox,
+        setLightbox,
+        loadSampleTrades,
       }}
     >
       {children}
