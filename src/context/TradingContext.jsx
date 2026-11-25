@@ -8,6 +8,63 @@ import { useAuth } from './AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { playWarningTone, playHeavyWarningSound } from '../utils/audioAlerts';
 
+export const AVAILABLE_THEMES = [
+  {
+    id: 'dark',
+    name: 'Cyber Dark',
+    category: '1) Dark mode',
+    description: 'Deep terminal dark with vivid emerald profit accents',
+    bgPreview: '#090e17',
+    primaryPreview: '#12d586',
+    borderPreview: '#1e2c3d',
+  },
+  {
+    id: 'light',
+    name: 'Clean Slate Light',
+    category: '2) Light mode',
+    description: 'Crisp, high-contrast modern light theme',
+    bgPreview: '#f8fafc',
+    primaryPreview: '#059669',
+    borderPreview: '#cbd5e1',
+  },
+  {
+    id: 'cyber-neon',
+    name: 'Midnight Sapphire',
+    category: '3) Colorful decent combo',
+    description: 'Deep navy obsidian with electric cyan & violet highlights',
+    bgPreview: '#0a0e1a',
+    primaryPreview: '#06b6d4',
+    borderPreview: '#243044',
+  },
+  {
+    id: 'latte-cream',
+    name: 'Warm Latte & White',
+    category: '4) Brown & white combo',
+    description: 'Warm linen cream and white with light mocha & caramel',
+    bgPreview: '#f7f4ee',
+    primaryPreview: '#b45309',
+    borderPreview: '#ddd5c7',
+  },
+  {
+    id: 'nordic-emerald',
+    name: 'Nordic Forest',
+    category: '5) Deep pine & mint',
+    description: 'Evergreen spruce background with vibrant arctic mint accents',
+    bgPreview: '#061412',
+    primaryPreview: '#10b981',
+    borderPreview: '#164640',
+  },
+  {
+    id: 'luxury-gold',
+    name: 'Royal Obsidian & Gold',
+    category: '6) Luxury dark & gold',
+    description: 'Pure velvet black with warm burnished gold accents',
+    bgPreview: '#0c0c0e',
+    primaryPreview: '#f59e0b',
+    borderPreview: '#332f27',
+  },
+];
+
 const TradingContext = createContext();
 
 const parseTagsAndExitScreenshot = (raw) => {
@@ -266,6 +323,30 @@ export const TradingProvider = ({ children }) => {
       return 'USD';
     }
   });
+
+  const [theme, setTheme] = useState(() => {
+    try {
+      return localStorage.getItem('pipdesk_theme_v1') || 'dark';
+    } catch {
+      return 'dark';
+    }
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('pipdesk_theme_v1', theme);
+      document.documentElement.setAttribute('data-theme', theme);
+      if (theme === 'light' || theme === 'latte-cream') {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.classList.add('light');
+      } else {
+        document.documentElement.classList.remove('light');
+        document.documentElement.classList.add('dark');
+      }
+    } catch (e) {
+      console.warn('Could not save theme to localStorage:', e);
+    }
+  }, [theme]);
 
   const [currentTab, setCurrentTab] = useState('dashboard');
 
@@ -789,6 +870,8 @@ export const TradingProvider = ({ children }) => {
         rules,
         currency,
         setCurrency,
+        theme,
+        setTheme,
         usdToInrRate,
         setUsdToInrRate,
         currentTab,

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useTrading } from '../context/TradingContext';
 import { useAuth } from '../context/AuthContext';
+import { ThemeSelector } from './ThemeSelector';
 
 export const Sidebar = ({ mobileOpen, setMobileOpen }) => {
   const { currentTab, setCurrentTab, currency, setCurrency, trades, usdToInrRate } = useTrading();
@@ -124,6 +125,11 @@ export const Sidebar = ({ mobileOpen, setMobileOpen }) => {
 
         {/* Bottom Section */}
         <div className="px-3 py-4 border-t border-border/70 space-y-3">
+          {/* Theme Selector */}
+          <div className="w-full">
+            <ThemeSelector compact={false} position="top-left" />
+          </div>
+
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5 text-[11px] font-num">
               <span className={currency === 'USD' ? 'text-foreground font-semibold' : 'text-muted-foreground'}>USD</span>

@@ -15,6 +15,7 @@ import { ImportExportModal } from './components/Modals/ImportExportModal';
 import { ScanTradesModal } from './components/Modals/ScanTradesModal';
 import { LightboxModal } from './components/Modals/LightboxModal';
 import { DisciplineAlertModal } from './components/Modals/DisciplineAlertModal';
+import { ThemeSelector } from './components/ThemeSelector';
 import { AuthModal } from './components/Auth/AuthModal';
 import { useAuth } from './context/AuthContext';
 
@@ -35,14 +36,14 @@ export function AppContent() {
   // If verifying session on startup
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#090e17] terminal-grid text-foreground flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-background terminal-grid text-foreground flex flex-col items-center justify-center p-4">
         <div className="w-12 h-12 rounded-2xl bg-primary/15 border border-primary/40 flex items-center justify-center shadow-[0_0_20px_rgba(18,213,134,0.3)] mb-4 animate-pulse">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
             <path d="M3 17.5 8 11l4 3.5L21 5" stroke="hsl(160 84% 45%)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
             <path d="M15.5 5H21v5.5" stroke="hsl(160 84% 45%)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </div>
-        <div className="text-white font-num font-bold text-base mb-1 tracking-tight">PIPDESK</div>
+        <div className="text-foreground font-num font-bold text-base mb-1 tracking-tight">PIPDESK</div>
         <div className="text-xs text-profit font-num animate-pulse">Connecting to secure database...</div>
       </div>
     );
@@ -51,14 +52,14 @@ export function AppContent() {
   // Gate: When opening the website without being logged in, pop up the login page directly!
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#090e17] terminal-grid text-foreground flex flex-col items-center justify-center p-4 relative selection:bg-primary/25">
+      <div className="min-h-screen bg-background terminal-grid text-foreground flex flex-col items-center justify-center p-4 relative selection:bg-primary/25">
         <AuthModal isGate={true} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#090e17] terminal-grid text-foreground flex flex-col lg:flex-row relative selection:bg-primary/25">
+    <div className="min-h-screen bg-background terminal-grid text-foreground flex flex-col lg:flex-row relative selection:bg-primary/25">
       {/* Mobile Header Bar */}
       <div className="lg:hidden flex items-center justify-between p-3.5 bg-card/90 border-b border-border sticky top-0 z-30 backdrop-blur-xl">
         <div className="flex items-center gap-2">
@@ -68,10 +69,13 @@ export function AppContent() {
               <path d="M15.5 5H21v5.5" stroke="hsl(160 84% 45%)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <span className="font-num font-bold tracking-tight text-sm text-white">PIPDESK</span>
+          <span className="font-num font-bold tracking-tight text-sm text-foreground">PIPDESK</span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
+          {/* Theme Selector */}
+          <ThemeSelector compact={true} />
+
           {/* Daily Trades Counter Badge */}
           {todayTradesCount > 0 && (
             <button
@@ -99,7 +103,7 @@ export function AppContent() {
             className="px-2 py-1 rounded-lg bg-secondary/60 border border-border text-[11px] font-num text-foreground flex items-center gap-1 cursor-pointer"
             title="Switch Currency"
           >
-            <span>{currency === 'USD' ? '$ USD' : '₹ INR'}</span>
+            <span>{currency === 'USD' ? '$' : '₹'}</span>
           </button>
 
           {/* Quick Log Button */}
