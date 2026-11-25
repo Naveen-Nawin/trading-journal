@@ -8,30 +8,50 @@ import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const TradingContext = createContext();
 
-const dbToTrade = (r) => ({
-  id: r.id,
-  pair: r.pair,
-  direction: r.direction,
-  lots: parseFloat(r.lots) || 0,
-  entryPrice: r.entry_price != null ? parseFloat(r.entry_price) : (r.entryPrice != null ? parseFloat(r.entryPrice) : undefined),
-  exitPrice: r.exit_price != null ? parseFloat(r.exit_price) : (r.exitPrice != null ? parseFloat(r.exitPrice) : undefined),
-  stopLoss: r.stop_loss != null ? parseFloat(r.stop_loss) : (r.stopLoss != null ? parseFloat(r.stopLoss) : undefined),
-  takeProfit: r.take_profit != null ? parseFloat(r.take_profit) : (r.takeProfit != null ? parseFloat(r.takeProfit) : undefined),
-  pnl: r.pnl != null ? parseFloat(r.pnl) : 0,
-  pips: r.pips != null ? parseFloat(r.pips) : 0,
-  rMultiple: r.r_multiple != null ? parseFloat(r.r_multiple) : (r.rMultiple != null ? parseFloat(r.rMultiple) : 0),
-  date: r.date,
-  time: r.time,
-  session: r.session,
-  status: r.status || 'CLOSED',
-  setupTag: r.setup_tag || r.setupTag,
-  tags: r.tags_json ? (typeof r.tags_json === 'string' ? JSON.parse(r.tags_json) : r.tags_json) : (r.tags || []),
-  emotion: r.emotion,
-  notes: r.notes,
-  screenshot: r.screenshot,
-  exitScreenshot: r.exit_screenshot || r.exitScreenshot || null,
-  followedPlan: r.followed_plan !== undefined ? Boolean(r.followed_plan) : Boolean(r.followedPlan),
-});
+const parseTagsAndExitScreenshot = (raw) => {
+  if (!raw) return { tags: [], exitScreenshot: null };
+  try {
+    const parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+    if (Array.isArray(parsed)) {
+      return { tags: parsed, exitScreenshot: null };
+    }
+    if (parsed && typeof parsed === 'object') {
+      return {
+        tags: Array.isArray(parsed.tags) ? parsed.tags : [],
+        exitScreenshot: parsed.exitScreenshot || null,
+      };
+    }
+  } catch (e) {}
+  return { tags: [], exitScreenshot: null };
+};
+
+const dbToTrade = (r) => {
+  const parsedMeta = parseTagsAndExitScreenshot(r.tags_json);
+  return {
+    id: r.id,
+    pair: r.pair,
+    direction: r.direction,
+    lots: parseFloat(r.lots) || 0,
+    entryPrice: r.entry_price != null ? parseFloat(r.entry_price) : (r.entryPrice != null ? parseFloat(r.entryPrice) : undefined),
+    exitPrice: r.exit_price != null ? parseFloat(r.exit_price) : (r.exitPrice != null ? parseFloat(r.exitPrice) : undefined),
+    stopLoss: r.stop_loss != null ? parseFloat(r.stop_loss) : (r.stopLoss != null ? parseFloat(r.stopLoss) : undefined),
+    takeProfit: r.take_profit != null ? parseFloat(r.take_profit) : (r.takeProfit != null ? parseFloat(r.takeProfit) : undefined),
+    pnl: r.pnl != null ? parseFloat(r.pnl) : 0,
+    pips: r.pips != null ? parseFloat(r.pips) : 0,
+    rMultiple: r.r_multiple != null ? parseFloat(r.r_multiple) : (r.rMultiple != null ? parseFloat(r.rMultiple) : 0),
+    date: r.date,
+    time: r.time,
+    session: r.session,
+    status: r.status || 'CLOSED',
+    setupTag: r.setup_tag || r.setupTag,
+    tags: parsedMeta.tags,
+    emotion: r.emotion,
+    notes: r.notes,
+    screenshot: r.screenshot,
+    exitScreenshot: r.exit_screenshot || parsedMeta.exitScreenshot || r.exitScreenshot || null,
+    followedPlan: r.followed_plan !== undefined ? Boolean(r.followed_plan) : Boolean(r.followedPlan),
+  };
+};
 
 const tradeToDb = (t, userId) => ({
   id: t.id,
@@ -51,7 +71,10 @@ const tradeToDb = (t, userId) => ({
   session: t.session || null,
   status: t.status || 'CLOSED',
   setup_tag: t.setupTag || null,
-  tags_json: JSON.stringify(t.tags || []),
+  tags_json: JSON.stringify({
+    tags: t.tags || [],
+    exitScreenshot: t.exitScreenshot || null,
+  }),
   emotion: t.emotion || null,
   notes: t.notes || '',
   screenshot: t.screenshot || null,
@@ -121,7 +144,22 @@ export const TradingProvider = ({ children }) => {
             .order('date', { ascending: false });
 
           if (!tradesErr && Array.isArray(tradesData)) {
-            setTrades(tradesData.map(dbToTrade));
+            const mapped = tradesData.map(dbToTrade);
+            // Merge with local storage cache so exitScreenshot is never lost on refresh
+            const savedRaw = localStorage.getItem(`pipdesk_trades_${user.id}`);
+            if (savedRaw) {
+              try {
+                const savedList = JSON.parse(savedRaw);
+                const savedMap = new Map(savedList.map((t) => [t.id, t]));
+                mapped.forEach((t) => {
+                  const local = savedMap.get(t.id);
+                  if (local?.exitScreenshot && !t.exitScreenshot) {
+                    t.exitScreenshot = local.exitScreenshot;
+                  }
+                });
+              } catch (e) {}
+            }
+            setTrades(mapped);
           } else {
             // Fallback to local storage for this user
             const saved = localStorage.getItem(`pipdesk_trades_${user.id}`);
@@ -253,7 +291,12 @@ export const TradingProvider = ({ children }) => {
 
     if (isSupabaseConfigured && user?.id) {
       try {
-        await supabase.from('trades').insert([tradeToDb(tradeWithId, user.id)]);
+        const dbPayload = tradeToDb(tradeWithId, user.id);
+        const { error } = await supabase.from('trades').insert([dbPayload]);
+        if (error && error.message?.includes('exit_screenshot')) {
+          delete dbPayload.exit_screenshot;
+          await supabase.from('trades').insert([dbPayload]);
+        }
       } catch (err) {
         console.warn('Supabase insert failed:', err);
       }
@@ -319,6 +362,8 @@ export const TradingProvider = ({ children }) => {
   };
 
   const closeTrade = async (tradeId, closeData) => {
+    let updatedTradeObj = null;
+
     setTrades((prev) =>
       prev.map((trade) => {
         if (trade.id === tradeId) {
@@ -327,6 +372,7 @@ export const TradingProvider = ({ children }) => {
             ...closeData,
             status: 'CLOSED',
           };
+          updatedTradeObj = updated;
           if (updated.pnl > 0) {
             triggerWinCelebration();
           }
@@ -344,6 +390,10 @@ export const TradingProvider = ({ children }) => {
           pips: closeData.pips,
           r_multiple: closeData.rMultiple,
           status: 'CLOSED',
+          tags_json: JSON.stringify({
+            tags: updatedTradeObj?.tags || [],
+            exitScreenshot: closeData.exitScreenshot || null,
+          }),
         };
         if (closeData.exitScreenshot) {
           payload.exit_screenshot = closeData.exitScreenshot;
@@ -392,7 +442,11 @@ export const TradingProvider = ({ children }) => {
         const dbPayload = tradeToDb({ id: tradeId, ...updatedData }, user.id);
         delete dbPayload.id;
         delete dbPayload.user_id;
-        await supabase.from('trades').update(dbPayload).eq('id', tradeId).eq('user_id', user.id);
+        const { error } = await supabase.from('trades').update(dbPayload).eq('id', tradeId).eq('user_id', user.id);
+        if (error && error.message?.includes('exit_screenshot')) {
+          delete dbPayload.exit_screenshot;
+          await supabase.from('trades').update(dbPayload).eq('id', tradeId).eq('user_id', user.id);
+        }
       } catch (err) {
         console.warn('Supabase update trade failed:', err);
       }
