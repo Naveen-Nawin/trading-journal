@@ -90,13 +90,14 @@ export const CalendarView = () => {
         <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
           <button
             onClick={handlePrevMonth}
-            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition cursor-pointer"
+            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-150 cursor-pointer active:scale-95"
+            aria-label="Previous month"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
 
           <div className="text-center">
-            <h2 className="text-base font-bold text-foreground tracking-wide">
+            <h2 className="text-base font-bold text-foreground tracking-wide font-num">
               {monthNames[currentMonth]} {currentYear}
             </h2>
             <div
@@ -110,7 +111,8 @@ export const CalendarView = () => {
 
           <button
             onClick={handleNextMonth}
-            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition cursor-pointer"
+            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-all duration-150 cursor-pointer active:scale-95"
+            aria-label="Next month"
           >
             <ChevronRight className="w-5 h-5" />
           </button>

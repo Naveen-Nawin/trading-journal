@@ -144,21 +144,21 @@ export const TradesView = () => {
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setIsScanModalOpen(true)}
-            className="flex items-center gap-2 px-3.5 py-2 bg-profit/15 hover:bg-profit/25 text-profit border border-profit/40 hover:border-profit/70 rounded-xl text-xs font-bold shadow-xs transition cursor-pointer"
+            className="flex items-center gap-2 px-3.5 py-2 bg-profit/15 hover:bg-profit/25 text-profit border border-profit/40 hover:border-profit/70 rounded-xl text-xs font-bold shadow-xs transition-all duration-150 cursor-pointer active:scale-95 hover:shadow-[0_0_12px_rgba(18,213,134,0.25)]"
           >
             <Camera className="w-3.5 h-3.5" />
             <span>Scan Screenshot</span>
           </button>
           <button
             onClick={() => setIsImportExportOpen(true)}
-            className="flex items-center gap-2 px-3.5 py-2 bg-secondary/50 hover:bg-secondary text-foreground border border-border rounded-xl text-xs font-semibold transition cursor-pointer"
+            className="flex items-center gap-2 px-3.5 py-2 bg-secondary/50 hover:bg-secondary text-foreground border border-border rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer active:scale-95 hover:border-border/80"
           >
             <Upload className="w-3.5 h-3.5" />
             <span>Import CSV</span>
           </button>
           <button
             onClick={exportCSV}
-            className="flex items-center gap-2 px-3.5 py-2 bg-secondary/50 hover:bg-secondary text-foreground border border-border rounded-xl text-xs font-semibold transition cursor-pointer"
+            className="flex items-center gap-2 px-3.5 py-2 bg-secondary/50 hover:bg-secondary text-foreground border border-border rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer active:scale-95 hover:border-border/80"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Export CSV</span>
@@ -633,7 +633,7 @@ export const TradesView = () => {
                             {isOpen && (
                               <button
                                 onClick={() => setTradeToClose(trade)}
-                                className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-profit/15 hover:bg-profit/25 text-profit border border-profit/35 transition mr-1 cursor-pointer"
+                                className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-profit/15 hover:bg-profit/25 text-profit border border-profit/35 hover:border-profit/70 transition-all duration-150 mr-1 cursor-pointer active:scale-95 hover:shadow-[0_0_10px_rgba(18,213,134,0.25)]"
                               >
                                 Close
                               </button>
@@ -641,7 +641,7 @@ export const TradesView = () => {
 
                             <button
                               onClick={() => setTradeToEdit(trade)}
-                              className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary transition cursor-pointer"
+                              className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary transition-all duration-150 cursor-pointer active:scale-95"
                               title="Edit trade"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
@@ -649,7 +649,7 @@ export const TradesView = () => {
 
                             <button
                               onClick={() => setTradeToDelete(trade)}
-                              className="p-1.5 text-muted-foreground hover:text-loss rounded-lg hover:bg-secondary transition cursor-pointer"
+                              className="p-1.5 text-muted-foreground hover:text-loss rounded-lg hover:bg-loss/15 hover:border-loss/30 transition-all duration-150 cursor-pointer active:scale-95"
                               title="Delete trade"
                             >
                               <Trash2 className="w-3.5 h-3.5" />

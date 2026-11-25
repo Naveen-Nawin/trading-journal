@@ -103,7 +103,7 @@ export function AppContent() {
       {/* Floating Action Button: + Log Trade */}
       <button
         onClick={() => setIsLogTradeOpen(true)}
-        className="hidden md:flex fixed bottom-7 right-8 z-40 h-12 px-5 shadow-lg shadow-primary/20 font-semibold bg-[#12d586] hover:bg-[#12d586]/90 text-[#071610] rounded-xl items-center gap-2 cursor-pointer transition-all duration-200 hover:-translate-y-0.5"
+        className="hidden md:flex fixed bottom-7 right-8 z-40 h-12 px-5 shadow-lg font-bold bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl items-center gap-2 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_20px_rgba(18,213,134,0.4)] active:translate-y-0 active:scale-95"
       >
         <Plus className="w-4 h-4 stroke-[2.5]" />
         <span>Log Trade</span>

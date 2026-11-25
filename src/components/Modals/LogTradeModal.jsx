@@ -664,7 +664,7 @@ export const LogTradeModal = () => {
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
+              className="px-5 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs rounded-xl shadow-xs transition-all duration-150 cursor-pointer hover:shadow-[0_0_15px_rgba(18,213,134,0.35)] active:scale-95"
             >
               Log trade
             </button>

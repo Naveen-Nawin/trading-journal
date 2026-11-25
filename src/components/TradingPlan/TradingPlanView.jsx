@@ -134,7 +134,7 @@ export const TradingPlanView = () => {
           <button
             type="submit"
             disabled={!newRuleText.trim()}
-            className="flex items-center gap-1.5 px-4 py-2.5 bg-profit/15 hover:bg-profit/25 text-profit border border-profit/40 rounded-xl text-xs font-bold transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+            className="flex items-center gap-1.5 px-4 py-2.5 bg-profit/15 hover:bg-profit/25 text-profit border border-profit/40 hover:border-profit/70 rounded-xl text-xs font-bold transition-all duration-150 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer active:scale-95 hover:shadow-[0_0_12px_rgba(18,213,134,0.25)]"
           >
             <Plus className="w-4 h-4" />
             <span>Add rule</span>

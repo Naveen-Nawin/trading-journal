@@ -269,7 +269,7 @@ export const AuthModal = ({ isGate = false }) => {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full py-2.5 px-4 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                className="w-full py-2.5 px-4 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs rounded-xl transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer shadow-xs hover:shadow-[0_0_15px_rgba(18,213,134,0.35)] active:scale-95"
               >
                 <span>{mode === 'login' ? 'Sign In & Load Journal' : 'Create Account & Open Journal'}</span>
                 <ArrowRight className="w-4 h-4" />
