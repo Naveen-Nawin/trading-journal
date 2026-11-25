@@ -127,7 +127,7 @@ export const Sidebar = ({ mobileOpen, setMobileOpen }) => {
         <div className="px-3 py-4 border-t border-border/70 space-y-3">
           {/* Theme Selector */}
           <div className="w-full">
-            <ThemeSelector compact={false} position="top-left" />
+            <ThemeSelector compact={false} />
           </div>
 
           <div className="flex items-center justify-between">
