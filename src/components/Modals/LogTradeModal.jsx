@@ -221,12 +221,9 @@ export const LogTradeModal = () => {
           <div className="grid grid-cols-12 gap-3">
             {/* Pair */}
             <div className="col-span-12 sm:col-span-4 space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="block text-[#94a3b8] text-xs font-medium font-sans">
-                  Pair / Asset
-                </label>
-                <span className="text-[10px] text-[#00f098] font-mono font-semibold">Gold Default</span>
-              </div>
+              <label className="block text-[#94a3b8] text-xs font-medium font-sans">
+                Pair
+              </label>
               <input
                 type="text"
                 value={pair}
@@ -235,24 +232,31 @@ export const LogTradeModal = () => {
                 required
                 className="w-full bg-[#080d12] text-[#00f098] font-bold text-sm font-mono border border-[#1e2c3d] rounded-xl px-3.5 py-2 focus:outline-hidden focus:border-[#00f098]/70 tracking-wide"
               />
-              <div className="flex items-center gap-1.5 pt-1 overflow-x-auto pb-0.5 no-scrollbar">
-                {['XAUUSD', 'EURUSD', 'GBPUSD', 'US30', 'BTCUSD'].map((p) => (
-                  <button
-                    key={p}
-                    type="button"
-                    onClick={() => {
-                      setPair(p);
-                      if (p === 'XAUUSD') setEntryPrice('2740.00');
-                    }}
-                    className={`px-1.5 py-0.5 text-[9px] font-mono font-bold rounded border transition-all cursor-pointer ${
-                      pair === p
-                        ? 'bg-[#00f098]/20 text-[#00f098] border-[#00f098]/60 shadow-[0_0_8px_rgba(0,240,152,0.25)]'
-                        : 'bg-[#0b1219] text-[#64748b] border-[#182635] hover:text-[#94a3b8]'
-                    }`}
-                  >
-                    {p === 'XAUUSD' ? '★ GOLD' : p}
-                  </button>
-                ))}
+              <div className="flex items-center gap-1.5 pt-1">
+                {[
+                  { label: 'GOLD', value: 'XAUUSD', defaultPrice: '2740.00' },
+                  { label: 'BTC', value: 'BTCUSD', defaultPrice: '96500.00' },
+                  { label: 'ETH', value: 'ETHUSD', defaultPrice: '3450.00' },
+                ].map((item) => {
+                  const isSelected = pair === item.value || pair === item.label;
+                  return (
+                    <button
+                      key={item.label}
+                      type="button"
+                      onClick={() => {
+                        setPair(item.value);
+                        setEntryPrice(item.defaultPrice);
+                      }}
+                      className={`px-2 py-0.5 text-[10px] font-mono font-bold rounded border transition-all cursor-pointer ${
+                        isSelected
+                          ? 'bg-[#00f098]/20 text-[#00f098] border-[#00f098]/60 shadow-[0_0_8px_rgba(0,240,152,0.25)]'
+                          : 'bg-[#0b1219] text-[#64748b] border-[#182635] hover:text-[#94a3b8]'
+                      }`}
+                    >
+                      {item.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
