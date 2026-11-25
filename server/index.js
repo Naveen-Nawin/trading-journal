@@ -27,7 +27,7 @@ const DEFAULT_RULES = [
 ];
 
 // Health check
-app.get('/api/health', (req, res) => {
+app.get(['/api/health', '/healthz'], (req, res) => {
   res.json({ status: 'ok', service: 'pipdesk-api', time: new Date().toISOString() });
 });
 
