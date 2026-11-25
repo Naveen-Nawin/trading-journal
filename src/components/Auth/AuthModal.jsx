@@ -5,7 +5,6 @@ import {
   Lock,
   User,
   ArrowRight,
-  Sparkles,
   AlertCircle,
   ShieldCheck,
   TrendingUp,
@@ -68,12 +67,6 @@ export const AuthModal = ({ isGate = false }) => {
     }
   };
 
-  const fillDemoAccount = () => {
-    setEmail('trader@forex.com');
-    setPassword('trader123');
-    setName('Forex Pro');
-  };
-
   return (
     <div className={isGate ? 'w-full max-w-[440px] my-auto' : 'fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs overflow-y-auto'}>
       {isGate && (
@@ -100,7 +93,7 @@ export const AuthModal = ({ isGate = false }) => {
                 {mode === 'login' ? 'Sign In to Your Journal' : 'Create Trader Account'}
               </h2>
               <p className="text-[11px] text-[#64748b]">
-                {mode === 'login' ? 'Automatic 5-hour secure session timeout' : 'Your private database for trades and rules'}
+                {mode === 'login' ? 'Access your private trading journal' : 'Your private database for trades and rules'}
               </p>
             </div>
           </div>
@@ -278,12 +271,6 @@ export const AuthModal = ({ isGate = false }) => {
                 </div>
               </div>
 
-              {/* Session duration badge */}
-              <div className="flex items-center justify-between text-[11px] text-[#64748b] px-1 font-mono">
-                <span>Auto-logout timeout:</span>
-                <span className="text-[#00f098] font-bold">5 Hours</span>
-              </div>
-
               {/* Submit Button */}
               <button
                 type="submit"
@@ -292,19 +279,6 @@ export const AuthModal = ({ isGate = false }) => {
                 <span>{mode === 'login' ? 'Sign In & Load Journal' : 'Create Account & Open Journal'}</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
-
-              {/* Quick Demo Fill */}
-              <div className="pt-2 border-t border-[#172230] flex items-center justify-between text-[11px] text-[#64748b]">
-                <span>Fast test?</span>
-                <button
-                  type="button"
-                  onClick={fillDemoAccount}
-                  className="text-[#00f098] hover:underline flex items-center gap-1 cursor-pointer font-mono"
-                >
-                  <Sparkles className="w-3 h-3" />
-                  <span>Fill sample login</span>
-                </button>
-              </div>
             </form>
           </>
         )}
