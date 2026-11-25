@@ -17,7 +17,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 
 export const AuthModal = ({ isGate = false }) => {
-  const { isAuthModalOpen, setIsAuthModalOpen, login, register, authError, setAuthError } = useAuth();
+  const { isAuthModalOpen, setIsAuthModalOpen, login, register, finalizeAuth, authError, setAuthError } = useAuth();
 
   const [mode, setMode] = useState('login'); // 'login' | 'register'
   const [name, setName] = useState('');
@@ -35,27 +35,30 @@ export const AuthModal = ({ isGate = false }) => {
     setLoadingStep(1);
 
     try {
-      // Step 1: Connecting to secure vault
-      await new Promise((r) => setTimeout(r, 350));
+      // Step 1: Connecting to secure vault (30%)
+      await new Promise((r) => setTimeout(r, 400));
       setLoadingStep(2);
 
-      // Perform real auth call against database
-      let authPromise;
+      // Perform auth call with skipSetUser so the animation doesn't get unmounted prematurely
+      let result;
       if (mode === 'login') {
-        authPromise = login(email, password);
+        result = await login(email, password, { skipSetUser: true });
       } else {
-        authPromise = register(email, password, name);
+        result = await register(email, password, name, { skipSetUser: true });
       }
 
-      await authPromise;
-
-      // Step 3: Syncing SQLite DB
+      // Step 3: Syncing cloud database (90%)
       setLoadingStep(3);
-      await new Promise((r) => setTimeout(r, 450));
+      await new Promise((r) => setTimeout(r, 650));
 
-      // Step 4: Access Granted & Launch
+      // Step 4: Access Granted & Launch (100%)
       setLoadingStep(4);
-      await new Promise((r) => setTimeout(r, 400));
+      await new Promise((r) => setTimeout(r, 600));
+
+      // Now smoothly mount the authenticated dashboard!
+      if (result?.user && result?.token) {
+        finalizeAuth(result.user, result.token);
+      }
     } catch (err) {
       setLoadingStep(0);
       setIsSubmitting(false);

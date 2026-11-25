@@ -107,7 +107,16 @@ export const AuthProvider = ({ children }) => {
     return () => clearInterval(interval);
   }, [user]);
 
-  const login = async (email, password) => {
+  const finalizeAuth = (userObj, userToken) => {
+    localStorage.setItem('pipdesk_auth_token', userToken);
+    localStorage.setItem('pipdesk_user_obj', JSON.stringify(userObj));
+    localStorage.setItem('pipdesk_session_start', Date.now().toString());
+    setToken(userToken);
+    setUser(userObj);
+    setIsAuthModalOpen(false);
+  };
+
+  const login = async (email, password, { skipSetUser = false } = {}) => {
     setAuthError('');
     const cleanEmail = email.trim().toLowerCase();
 
@@ -128,13 +137,10 @@ export const AuthProvider = ({ children }) => {
         name: data.user.user_metadata?.name || cleanEmail.split('@')[0],
       };
 
-      localStorage.setItem('pipdesk_auth_token', data.session.access_token);
-      localStorage.setItem('pipdesk_user_obj', JSON.stringify(userObj));
-      localStorage.setItem('pipdesk_session_start', Date.now().toString());
-      setToken(data.session.access_token);
-      setUser(userObj);
-      setIsAuthModalOpen(false);
-      return data;
+      if (!skipSetUser) {
+        finalizeAuth(userObj, data.session.access_token);
+      }
+      return { user: userObj, token: data.session.access_token, data };
     }
 
     // Fallback to Express backend if Supabase not configured
@@ -148,12 +154,9 @@ export const AuthProvider = ({ children }) => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Login failed');
 
-      localStorage.setItem('pipdesk_auth_token', data.token);
-      localStorage.setItem('pipdesk_user_obj', JSON.stringify(data.user));
-      localStorage.setItem('pipdesk_session_start', Date.now().toString());
-      setToken(data.token);
-      setUser(data.user);
-      setIsAuthModalOpen(false);
+      if (!skipSetUser) {
+        finalizeAuth(data.user, data.token);
+      }
       return data;
     } catch (err) {
       setAuthError(err.message);
@@ -161,7 +164,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (email, password, name) => {
+  const register = async (email, password, name, { skipSetUser = false } = {}) => {
     setAuthError('');
     const cleanEmail = email.trim().toLowerCase();
     const cleanName = (name && name.trim()) || cleanEmail.split('@')[0];
@@ -187,16 +190,14 @@ export const AuthProvider = ({ children }) => {
           email: data.user.email,
           name: cleanName,
         };
-        localStorage.setItem('pipdesk_auth_token', data.session.access_token);
-        localStorage.setItem('pipdesk_user_obj', JSON.stringify(userObj));
-        localStorage.setItem('pipdesk_session_start', Date.now().toString());
-        setToken(data.session.access_token);
-        setUser(userObj);
-        setIsAuthModalOpen(false);
+        if (!skipSetUser) {
+          finalizeAuth(userObj, data.session.access_token);
+        }
+        return { user: userObj, token: data.session.access_token, data };
       } else if (data?.user) {
         // Try logging in directly
         try {
-          return await login(cleanEmail, password);
+          return await login(cleanEmail, password, { skipSetUser });
         } catch {
           setAuthError('Account created! Please check your email or log in.');
         }
@@ -215,12 +216,9 @@ export const AuthProvider = ({ children }) => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Registration failed');
 
-      localStorage.setItem('pipdesk_auth_token', data.token);
-      localStorage.setItem('pipdesk_user_obj', JSON.stringify(data.user));
-      localStorage.setItem('pipdesk_session_start', Date.now().toString());
-      setToken(data.token);
-      setUser(data.user);
-      setIsAuthModalOpen(false);
+      if (!skipSetUser) {
+        finalizeAuth(data.user, data.token);
+      }
       return data;
     } catch (err) {
       setAuthError(err.message);
@@ -264,6 +262,7 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         logout,
+        finalizeAuth,
         isLoggingOut,
       }}
     >
