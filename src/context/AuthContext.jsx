@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { LogoutModal } from '../components/Auth/LogoutModal';
 
 const AuthContext = createContext(null);
 
@@ -11,6 +12,8 @@ export const AuthProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authError, setAuthError] = useState('');
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [logoutReason, setLogoutReason] = useState('');
 
   // Validate session and 5-hour limit on mount
   useEffect(() => {
@@ -225,7 +228,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = async (reason = '') => {
+  const logout = (reason = '') => {
+    setLogoutReason(reason);
+    setIsLoggingOut(true);
+  };
+
+  const completeLogout = async () => {
     if (isSupabaseConfigured) {
       try {
         await supabase.auth.signOut();
@@ -236,8 +244,9 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('pipdesk_session_start');
     setToken(null);
     setUser(null);
-    if (reason) {
-      setAuthError(reason);
+    setIsLoggingOut(false);
+    if (logoutReason) {
+      setAuthError(logoutReason);
     }
   };
 
@@ -255,9 +264,16 @@ export const AuthProvider = ({ children }) => {
         login,
         register,
         logout,
+        isLoggingOut,
       }}
     >
       {children}
+      <LogoutModal
+        isOpen={isLoggingOut}
+        userName={user?.name || user?.email?.split('@')[0] || 'Trader'}
+        reason={logoutReason}
+        onComplete={completeLogout}
+      />
     </AuthContext.Provider>
   );
 };
