@@ -227,7 +227,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = (reason = '') => {
-    setLogoutReason(reason);
+    const cleanReason = typeof reason === 'string' ? reason : '';
+    setLogoutReason(cleanReason);
     setIsLoggingOut(true);
   };
 
@@ -243,9 +244,10 @@ export const AuthProvider = ({ children }) => {
     setToken(null);
     setUser(null);
     setIsLoggingOut(false);
-    if (logoutReason) {
+    if (logoutReason && typeof logoutReason === 'string') {
       setAuthError(logoutReason);
     }
+    setLogoutReason('');
   };
 
   return (

@@ -78,7 +78,7 @@ export const Sidebar = ({ mobileOpen, setMobileOpen }) => {
                 <div className="flex items-center justify-between pt-1 border-t border-[#131d2a] text-[11px]">
                   <span className="text-[10px] text-[#00f098] font-mono font-medium">● DB Synced</span>
                   <button
-                    onClick={logout}
+                    onClick={() => logout()}
                     className="text-[#8092a4] hover:text-[#ff4d4d] flex items-center gap-1 transition cursor-pointer"
                     title="Sign Out"
                   >

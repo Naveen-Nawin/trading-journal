@@ -86,7 +86,7 @@ export const LogoutModal = ({ isOpen, userName = 'Trader', reason = '', onComple
             {step < 4 ? 'Disconnecting Vault...' : 'Session Vault Locked'}
           </h3>
           <p className="text-xs text-[#8092a4]">
-            {reason ? (
+            {typeof reason === 'string' && reason ? (
               <span className="text-[#f59e0b] font-medium">{reason}</span>
             ) : (
               `Safely logging out ${userName}`
