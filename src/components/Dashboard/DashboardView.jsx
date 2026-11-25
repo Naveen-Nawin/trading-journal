@@ -6,6 +6,7 @@ import { EquityCurveChart } from './EquityCurveChart';
 import { JournalPulse } from './JournalPulse';
 import { BreakdownBars } from './BreakdownBars';
 import { CalendarPreview } from './CalendarPreview';
+import { RotatingQuotesBanner } from './RotatingQuotesBanner';
 
 export const DashboardView = () => {
   const {
@@ -31,6 +32,9 @@ export const DashboardView = () => {
   if (!trades || trades.length === 0) {
     return (
       <div className="space-y-6 pb-24">
+        {/* Colorful Rotating Quotes Banner */}
+        <RotatingQuotesBanner />
+
         <div className="animate-rise">
           <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground mb-1.5 font-sans">
             {currentDateFormatted}
@@ -72,6 +76,9 @@ export const DashboardView = () => {
 
   return (
     <div className="space-y-5 md:space-y-6 pb-24">
+      {/* Colorful Rotating Quotes Banner */}
+      <RotatingQuotesBanner />
+
       {/* Header */}
       <div className="animate-rise">
         <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground mb-1.5 font-sans">
