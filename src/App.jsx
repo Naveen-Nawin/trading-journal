@@ -61,19 +61,19 @@ export function AppContent() {
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col lg:flex-row relative selection:bg-primary/25">
       {/* Mobile Header Bar */}
-      <div className="lg:hidden flex items-center justify-between p-3.5 bg-card/90 border-b border-border sticky top-0 z-30 backdrop-blur-xl">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary/15 border border-primary/40 flex items-center justify-center">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+      <div className="lg:hidden flex items-center justify-between px-3 py-2.5 bg-card/90 border-b border-border sticky top-0 z-30 backdrop-blur-xl">
+        <div className="flex items-center gap-1.5 shrink-0">
+          <div className="w-7 h-7 rounded-lg bg-primary/15 border border-primary/40 flex items-center justify-center shrink-0">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
               <path d="M3 17.5 8 11l4 3.5L21 5" stroke="hsl(160 84% 45%)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
               <path d="M15.5 5H21v5.5" stroke="hsl(160 84% 45%)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <span className="font-num font-bold tracking-tight text-sm text-foreground">PIPDESK</span>
+          <span className="font-num font-bold tracking-tight text-xs sm:text-sm text-foreground">PIPDESK</span>
         </div>
 
-        <div className="flex items-center gap-1.5">
-          {/* Theme Selector */}
+        <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+          {/* Theme Selector (Mobile fitted bottom sheet) */}
           <ThemeSelector compact={true} />
 
           {/* Daily Trades Counter Badge */}
@@ -83,7 +83,7 @@ export function AppContent() {
                 if (isDailyLocked) triggerDisciplineAlert('lock', todayTradesCount);
                 else if (isDailyWarning) triggerDisciplineAlert('warning', todayTradesCount);
               }}
-              className={`px-2 py-1 rounded-lg text-[11px] font-num font-bold flex items-center gap-1 cursor-pointer transition ${
+              className={`px-1.5 py-1 rounded-lg text-[10px] font-num font-bold flex items-center gap-1 cursor-pointer transition shrink-0 ${
                 isDailyLocked
                   ? 'bg-loss/20 text-loss border border-loss/40'
                   : isDailyWarning
@@ -92,7 +92,7 @@ export function AppContent() {
               }`}
               title="Daily Trades Counter (Max 5)"
             >
-              {isDailyLocked ? <Lock className="w-3 h-3" /> : isDailyWarning ? <AlertTriangle className="w-3 h-3" /> : null}
+              {isDailyLocked ? <Lock className="w-2.5 h-2.5" /> : isDailyWarning ? <AlertTriangle className="w-2.5 h-2.5" /> : null}
               <span>{todayTradesCount}/5</span>
             </button>
           )}
@@ -100,7 +100,7 @@ export function AppContent() {
           {/* Quick Currency Toggle */}
           <button
             onClick={() => setCurrency(currency === 'USD' ? 'INR' : 'USD')}
-            className="px-2 py-1 rounded-lg bg-secondary/60 border border-border text-[11px] font-num text-foreground flex items-center gap-1 cursor-pointer"
+            className="px-2 py-1 rounded-lg bg-secondary/60 border border-border text-[11px] font-num text-foreground flex items-center gap-1 cursor-pointer shrink-0"
             title="Switch Currency"
           >
             <span>{currency === 'USD' ? '$' : '₹'}</span>
@@ -115,21 +115,22 @@ export function AppContent() {
                 setIsLogTradeOpen(true);
               }
             }}
-            className={`flex items-center gap-1 px-3 py-1.5 font-bold text-xs rounded-xl shadow-xs transition cursor-pointer ${
+            className={`flex items-center gap-1 px-2.5 py-1 font-bold text-xs rounded-xl shadow-xs transition cursor-pointer shrink-0 ${
               isDailyLocked
                 ? 'bg-loss hover:bg-loss/90 text-white shadow-[0_0_12px_rgba(239,68,68,0.35)]'
                 : 'bg-primary hover:bg-primary/90 text-primary-foreground'
             }`}
           >
-            {isDailyLocked ? <Lock className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+            {isDailyLocked ? <Lock className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
             <span>{isDailyLocked ? 'Locked' : 'Log'}</span>
           </button>
 
           <button
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg bg-secondary border border-border cursor-pointer ml-1"
+            className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg bg-secondary border border-border cursor-pointer shrink-0"
+            aria-label="Open menu"
           >
-            <Menu className="w-5 h-5" />
+            <Menu className="w-4 h-4" />
           </button>
         </div>
       </div>
