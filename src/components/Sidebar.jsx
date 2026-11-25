@@ -5,7 +5,6 @@ import {
   Calendar as CalendarIcon,
   CheckSquare,
   TrendingUp,
-  Trash2,
   LogIn,
   LogOut,
   User,
@@ -15,7 +14,7 @@ import { useTrading } from '../context/TradingContext';
 import { useAuth } from '../context/AuthContext';
 
 export const Sidebar = ({ mobileOpen, setMobileOpen }) => {
-  const { currentTab, setCurrentTab, currency, setCurrency, clearAllTrades, trades, usdToInrRate } = useTrading();
+  const { currentTab, setCurrentTab, currency, setCurrency, trades, usdToInrRate } = useTrading();
   const { user, isAuthenticated, logout, setIsAuthModalOpen } = useAuth();
 
   const navItems = [
@@ -157,20 +156,6 @@ export const Sidebar = ({ mobileOpen, setMobileOpen }) => {
               <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#00f098] animate-pulse" /> LIVE
             </span>
           </div>
-
-          {/* Clear All Trades Button */}
-          <button
-            onClick={() => {
-              if (window.confirm('Are you sure you want to clear all trades? This will start a completely fresh journal.')) {
-                clearAllTrades();
-              }
-            }}
-            className="w-full flex items-center justify-center gap-1.5 px-2 py-1.5 text-[11px] text-[#64748b] hover:text-[#ff4d4d] hover:bg-[#1f1317] rounded transition"
-            title="Clear all trades from journal"
-          >
-            <Trash2 className="w-3 h-3" />
-            <span>Clear All Trades ({trades.length})</span>
-          </button>
 
           {/* Live Status */}
           <div className="px-2">
