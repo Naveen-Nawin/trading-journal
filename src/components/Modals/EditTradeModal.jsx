@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { X, Save } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Save, ImagePlus } from 'lucide-react';
 import { useTrading } from '../../context/TradingContext';
 
 export const EditTradeModal = () => {
   const { tradeToEdit, setTradeToEdit, updateTrade, currency } = useTrading();
 
   const [formData, setFormData] = useState(null);
+  const entryFileRef = useRef(null);
+  const exitFileRef = useRef(null);
 
   useEffect(() => {
     if (tradeToEdit) {
@@ -49,6 +51,7 @@ export const EditTradeModal = () => {
       exitPrice,
       stopLoss,
       takeProfit,
+      exitScreenshot: formData.exitScreenshot || null,
       pnl: formData.status === 'CLOSED' ? (formData.pnl !== '' && formData.pnl != null ? parseFloat(formData.pnl) : 0) : null,
       rMultiple,
       pips,
@@ -250,17 +253,102 @@ export const EditTradeModal = () => {
             />
           </div>
 
-          <div>
-            <label className="block text-[#64748b] text-[11px] font-bold tracking-wider uppercase mb-1">
-              Screenshot URL
-            </label>
-            <input
-              type="url"
-              value={formData.screenshot || ''}
-              onChange={(e) => handleChange('screenshot', e.target.value)}
-              placeholder="https://..."
-              className="w-full bg-[#06090d] text-white text-xs border border-[#16222f] rounded-xl px-3 py-2"
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Entry Screenshot */}
+            <div className="space-y-1.5">
+              <label className="block text-[#00f098] text-[11px] font-bold tracking-wider uppercase mb-1 flex items-center justify-between">
+                <span>Entry Chart Screenshot</span>
+                <span className="text-[10px] text-[#64748b] font-normal lowercase">optional</span>
+              </label>
+              {formData.screenshot ? (
+                <div className="relative w-full h-24 rounded-xl border border-[#16222f] overflow-hidden bg-[#06090d]">
+                  <img
+                    src={formData.screenshot}
+                    alt="Entry Chart"
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleChange('screenshot', '')}
+                    className="absolute top-1 right-1 w-6 h-6 rounded-full bg-[#ff4d4d] text-white flex items-center justify-center text-xs shadow-md cursor-pointer hover:bg-[#dc2626]"
+                    title="Remove Entry Chart"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => entryFileRef.current?.click()}
+                  className="flex items-center justify-center gap-2 text-xs text-[#8092a4] border border-dashed border-[#1e2c3d] hover:border-[#00f098]/50 hover:text-white rounded-xl px-4 py-4 w-full transition cursor-pointer bg-[#06090d]/60"
+                >
+                  <ImagePlus className="w-4 h-4 text-[#00f098]" />
+                  <span>Upload Entry Chart</span>
+                </button>
+              )}
+              <input
+                ref={entryFileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => handleChange('screenshot', reader.result);
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+            </div>
+
+            {/* Exit Screenshot */}
+            <div className="space-y-1.5">
+              <label className="block text-[#38bdf8] text-[11px] font-bold tracking-wider uppercase mb-1 flex items-center justify-between">
+                <span>Exit Chart Screenshot</span>
+                <span className="text-[10px] text-[#64748b] font-normal lowercase">optional</span>
+              </label>
+              {formData.exitScreenshot ? (
+                <div className="relative w-full h-24 rounded-xl border border-[#16222f] overflow-hidden bg-[#06090d]">
+                  <img
+                    src={formData.exitScreenshot}
+                    alt="Exit Chart"
+                    className="w-full h-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleChange('exitScreenshot', '')}
+                    className="absolute top-1 right-1 w-6 h-6 rounded-full bg-[#ff4d4d] text-white flex items-center justify-center text-xs shadow-md cursor-pointer hover:bg-[#dc2626]"
+                    title="Remove Exit Chart"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => exitFileRef.current?.click()}
+                  className="flex items-center justify-center gap-2 text-xs text-[#8092a4] border border-dashed border-[#1e2c3d] hover:border-[#38bdf8]/50 hover:text-white rounded-xl px-4 py-4 w-full transition cursor-pointer bg-[#06090d]/60"
+                >
+                  <ImagePlus className="w-4 h-4 text-[#38bdf8]" />
+                  <span>Upload Exit Chart</span>
+                </button>
+              )}
+              <input
+                ref={exitFileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => handleChange('exitScreenshot', reader.result);
+                    reader.readAsDataURL(file);
+                  }
+                }}
+              />
+            </div>
           </div>
 
           <div className="pt-3 border-t border-[#141f2b] flex items-center justify-end gap-3">

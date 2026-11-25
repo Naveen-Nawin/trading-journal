@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, CheckCircle2, ImagePlus } from 'lucide-react';
 import { useTrading } from '../../context/TradingContext';
 
 export const CloseTradeModal = () => {
@@ -9,9 +9,12 @@ export const CloseTradeModal = () => {
   const [pnl, setPnl] = useState('');
   const [rMultiple, setRMultiple] = useState('');
   const [pips, setPips] = useState('');
-  const [date, setDate] = useState('2026-11-18');
+  const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [notes, setNotes] = useState('');
   const [followedPlan, setFollowedPlan] = useState(true);
+  const [exitScreenshot, setExitScreenshot] = useState(null);
+
+  const fileRef = useRef(null);
 
   useEffect(() => {
     if (tradeToClose) {
@@ -19,9 +22,10 @@ export const CloseTradeModal = () => {
       setPnl('');
       setRMultiple('');
       setPips('');
-      setDate('2026-11-18');
+      setDate(new Date().toISOString().slice(0, 10));
       setNotes(tradeToClose.notes || '');
       setFollowedPlan(tradeToClose.followedPlan ?? true);
+      setExitScreenshot(tradeToClose.exitScreenshot || null);
     }
   }, [tradeToClose]);
 
@@ -65,6 +69,7 @@ export const CloseTradeModal = () => {
       date,
       notes: notes.trim(),
       followedPlan,
+      exitScreenshot,
     });
   };
 
@@ -220,6 +225,59 @@ export const CloseTradeModal = () => {
               onChange={(e) => setNotes(e.target.value)}
               placeholder="What went well? Did you take profit according to plan?"
               className="w-full bg-[#06090d] text-white text-xs border border-[#16222f] rounded-xl p-3 focus:border-[#00f098]/60 focus:outline-hidden"
+            />
+          </div>
+
+          {/* Exit Chart Screenshot Upload */}
+          <div className="space-y-1.5">
+            <label className="block text-[#38bdf8] text-[11px] font-bold tracking-wider uppercase mb-1 flex items-center justify-between">
+              <span>Exit Chart Screenshot</span>
+              <span className="text-[10px] text-[#64748b] font-normal lowercase">optional</span>
+            </label>
+            {exitScreenshot ? (
+              <div className="relative w-fit">
+                <img
+                  src={exitScreenshot}
+                  alt="Exit chart preview"
+                  className="h-24 rounded-xl border border-[#1e2c3d] object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setExitScreenshot(null);
+                    if (fileRef.current) fileRef.current.value = '';
+                  }}
+                  className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[#ff4d4d] text-white flex items-center justify-center text-xs shadow-md cursor-pointer hover:bg-[#dc2626]"
+                  title="Remove Screenshot"
+                >
+                  ✕
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="flex items-center justify-center gap-2 text-xs text-[#8092a4] border border-dashed border-[#1e2c3d] hover:border-[#38bdf8]/50 hover:text-white rounded-xl px-4 py-3.5 w-full transition cursor-pointer bg-[#06090d]/60"
+              >
+                <ImagePlus className="w-4 h-4 text-[#38bdf8]" />
+                <span>Upload Exit Chart Screenshot (PNG/JPG)</span>
+              </button>
+            )}
+            <input
+              ref={fileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  const reader = new FileReader();
+                  reader.onloadend = () => {
+                    setExitScreenshot(reader.result);
+                  };
+                  reader.readAsDataURL(file);
+                }
+              }}
             />
           </div>
 

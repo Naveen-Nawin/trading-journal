@@ -69,9 +69,11 @@ export const LogTradeModal = () => {
   const [customTag, setCustomTag] = useState('');
   const [notes, setNotes] = useState('');
   const [preview, setPreview] = useState(null);
+  const [exitPreview, setExitPreview] = useState(null);
   const [followedPlan, setFollowedPlan] = useState(false);
 
   const fileRef = useRef(null);
+  const exitFileRef = useRef(null);
 
   useEffect(() => {
     if (isLogTradeOpen) {
@@ -92,6 +94,7 @@ export const LogTradeModal = () => {
       setCustomTag('');
       setNotes('');
       setPreview(null);
+      setExitPreview(null);
       setFollowedPlan(false);
     }
   }, [isLogTradeOpen]);
@@ -131,6 +134,11 @@ export const LogTradeModal = () => {
   const clearFile = () => {
     setPreview(null);
     if (fileRef.current) fileRef.current.value = '';
+  };
+
+  const clearExitFile = () => {
+    setExitPreview(null);
+    if (exitFileRef.current) exitFileRef.current.value = '';
   };
 
   const handleSubmit = (e) => {
@@ -177,6 +185,7 @@ export const LogTradeModal = () => {
       followedPlan,
       notes: notes.trim(),
       screenshot: preview || '',
+      exitScreenshot: isClosed ? (exitPreview || '') : '',
     };
 
     logTrade(tradeData);
@@ -527,43 +536,96 @@ export const LogTradeModal = () => {
             />
           </div>
 
-          {/* Row 7: Chart screenshot */}
-          <div className="space-y-1.5">
-            <label className="block text-[#94a3b8] text-xs font-medium font-sans">
-              Chart screenshot
-            </label>
-            {preview ? (
-              <div className="relative w-fit">
-                <img
-                  src={preview}
-                  alt="Chart preview"
-                  className="h-24 rounded-xl border border-[#1e2c3d] object-cover"
-                />
+          {/* Row 7: Chart screenshots (Entry & Exit) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="block text-[#00f098] text-xs font-medium font-sans flex items-center justify-between">
+                <span>Entry Chart screenshot</span>
+                <span className="text-[10px] text-[#64748b]">optional</span>
+              </label>
+              {preview ? (
+                <div className="relative w-fit">
+                  <img
+                    src={preview}
+                    alt="Entry Chart preview"
+                    className="h-24 rounded-xl border border-[#1e2c3d] object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={clearFile}
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[#ff4d4d] text-white flex items-center justify-center text-xs shadow-md cursor-pointer hover:bg-[#dc2626]"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ) : (
                 <button
                   type="button"
-                  onClick={clearFile}
-                  className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[#ff4d4d] text-white flex items-center justify-center text-xs shadow-md"
+                  onClick={() => fileRef.current?.click()}
+                  className="flex items-center justify-center gap-2 text-xs text-[#8092a4] border border-dashed border-[#1e2c3d] hover:border-[#00f098]/50 hover:text-white rounded-xl px-4 py-3.5 w-full transition cursor-pointer"
                 >
-                  ✕
+                  <ImagePlus className="w-4 h-4 text-[#00f098]" />
+                  <span>Attach Entry Chart</span>
                 </button>
+              )}
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleFileChange}
+              />
+            </div>
+
+            {isClosed && (
+              <div className="space-y-1.5">
+                <label className="block text-[#38bdf8] text-xs font-medium font-sans flex items-center justify-between">
+                  <span>Exit Chart screenshot</span>
+                  <span className="text-[10px] text-[#64748b]">optional</span>
+                </label>
+                {exitPreview ? (
+                  <div className="relative w-fit">
+                    <img
+                      src={exitPreview}
+                      alt="Exit Chart preview"
+                      className="h-24 rounded-xl border border-[#1e2c3d] object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={clearExitFile}
+                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[#ff4d4d] text-white flex items-center justify-center text-xs shadow-md cursor-pointer hover:bg-[#dc2626]"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => exitFileRef.current?.click()}
+                    className="flex items-center justify-center gap-2 text-xs text-[#8092a4] border border-dashed border-[#1e2c3d] hover:border-[#38bdf8]/50 hover:text-white rounded-xl px-4 py-3.5 w-full transition cursor-pointer"
+                  >
+                    <ImagePlus className="w-4 h-4 text-[#38bdf8]" />
+                    <span>Attach Exit Chart</span>
+                  </button>
+                )}
+                <input
+                  ref={exitFileRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        setExitPreview(reader.result);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
               </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => fileRef.current?.click()}
-                className="flex items-center justify-center gap-2 text-xs text-[#8092a4] border border-dashed border-[#1e2c3d] hover:border-[#00f098]/50 hover:text-white rounded-xl px-4 py-3.5 w-full transition cursor-pointer"
-              >
-                <ImagePlus className="w-4 h-4 text-[#8092a4]" />
-                <span>Attach a chart screenshot (PNG/JPG, max 8MB)</span>
-              </button>
             )}
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleFileChange}
-            />
           </div>
 
           {/* Row 8: Followed my trading plan */}

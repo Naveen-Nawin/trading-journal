@@ -29,6 +29,7 @@ const dbToTrade = (r) => ({
   emotion: r.emotion,
   notes: r.notes,
   screenshot: r.screenshot,
+  exitScreenshot: r.exit_screenshot || r.exitScreenshot || null,
   followedPlan: r.followed_plan !== undefined ? Boolean(r.followed_plan) : Boolean(r.followedPlan),
 });
 
@@ -54,6 +55,7 @@ const tradeToDb = (t, userId) => ({
   emotion: t.emotion || null,
   notes: t.notes || '',
   screenshot: t.screenshot || null,
+  exit_screenshot: t.exitScreenshot || null,
   followed_plan: t.followedPlan ? true : false,
 });
 
@@ -336,17 +338,29 @@ export const TradingProvider = ({ children }) => {
 
     if (isSupabaseConfigured && user?.id) {
       try {
-        await supabase
+        const payload = {
+          exit_price: closeData.exitPrice,
+          pnl: closeData.pnl,
+          pips: closeData.pips,
+          r_multiple: closeData.rMultiple,
+          status: 'CLOSED',
+        };
+        if (closeData.exitScreenshot) {
+          payload.exit_screenshot = closeData.exitScreenshot;
+        }
+        if (closeData.notes) {
+          payload.notes = closeData.notes;
+        }
+        const { error } = await supabase
           .from('trades')
-          .update({
-            exit_price: closeData.exitPrice,
-            pnl: closeData.pnl,
-            pips: closeData.pips,
-            r_multiple: closeData.rMultiple,
-            status: 'CLOSED',
-          })
+          .update(payload)
           .eq('id', tradeId)
           .eq('user_id', user.id);
+
+        if (error && error.message?.includes('exit_screenshot')) {
+          delete payload.exit_screenshot;
+          await supabase.from('trades').update(payload).eq('id', tradeId).eq('user_id', user.id);
+        }
       } catch (err) {
         console.warn('Supabase close trade failed:', err);
       }

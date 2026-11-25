@@ -556,33 +556,69 @@ export const TradesView = () => {
                                 </p>
                               </div>
 
-                              {/* Right Column: Screenshot Preview */}
-                              <div className="space-y-2">
-                                <div className="text-[11px] font-bold uppercase tracking-wider text-[#64748b]">
-                                  Chart Screenshot
+                              {/* Right Column: Entry & Exit Screenshots */}
+                              <div className="space-y-3">
+                                <div>
+                                  <div className="text-[11px] font-bold uppercase tracking-wider text-[#00f098] mb-1.5 flex items-center justify-between">
+                                    <span>Entry Chart</span>
+                                    {trade.screenshot && (
+                                      <span className="text-[10px] text-[#8092a4] font-mono font-normal">Active Setup</span>
+                                    )}
+                                  </div>
+                                  {trade.screenshot ? (
+                                    <div className="relative group rounded-lg overflow-hidden border border-[#1a2837] h-24 bg-[#090e14]">
+                                      <img
+                                        src={trade.screenshot}
+                                        alt="Entry trade chart"
+                                        className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                                      />
+                                      <a
+                                        href={trade.screenshot}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs gap-1 transition"
+                                      >
+                                        <ExternalLink className="w-3.5 h-3.5" /> View Full
+                                      </a>
+                                    </div>
+                                  ) : (
+                                    <div className="h-16 rounded-lg border border-dashed border-[#1a2837] bg-[#090e14] flex items-center justify-center text-[#546577] text-xs gap-1.5">
+                                      <ImageIcon className="w-4 h-4" />
+                                      <span>No entry chart attached</span>
+                                    </div>
+                                  )}
                                 </div>
-                                {trade.screenshot ? (
-                                  <div className="relative group rounded-lg overflow-hidden border border-[#1a2837] h-28 bg-[#090e14]">
-                                    <img
-                                      src={trade.screenshot}
-                                      alt="Trade chart"
-                                      className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
-                                    />
-                                    <a
-                                      href={trade.screenshot}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs gap-1 transition"
-                                    >
-                                      <ExternalLink className="w-4 h-4" /> View Full
-                                    </a>
+
+                                <div>
+                                  <div className="text-[11px] font-bold uppercase tracking-wider text-[#38bdf8] mb-1.5 flex items-center justify-between">
+                                    <span>Exit Chart</span>
+                                    {trade.exitScreenshot && (
+                                      <span className="text-[10px] text-[#8092a4] font-mono font-normal">Post-Trade</span>
+                                    )}
                                   </div>
-                                ) : (
-                                  <div className="h-28 rounded-lg border border-dashed border-[#1a2837] bg-[#090e14] flex flex-col items-center justify-center text-[#546577] text-xs">
-                                    <ImageIcon className="w-5 h-5 mb-1" />
-                                    <span>No screenshot attached</span>
-                                  </div>
-                                )}
+                                  {trade.exitScreenshot ? (
+                                    <div className="relative group rounded-lg overflow-hidden border border-[#1a2837] h-24 bg-[#090e14]">
+                                      <img
+                                        src={trade.exitScreenshot}
+                                        alt="Exit trade chart"
+                                        className="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                                      />
+                                      <a
+                                        href={trade.exitScreenshot}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs gap-1 transition"
+                                      >
+                                        <ExternalLink className="w-3.5 h-3.5" /> View Full
+                                      </a>
+                                    </div>
+                                  ) : (
+                                    <div className="h-16 rounded-lg border border-dashed border-[#1a2837] bg-[#090e14] flex items-center justify-center text-[#546577] text-xs gap-1.5">
+                                      <ImageIcon className="w-4 h-4" />
+                                      <span>No exit chart attached</span>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </td>
