@@ -195,12 +195,12 @@ export const LogTradeModal = () => {
   const allTagOptions = Array.from(new Set([...DEFAULT_TAGS, ...tags]));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-xs overflow-y-auto">
-      <div className="relative w-full max-w-[620px] bg-[#0c1015] border border-[#1b2533] rounded-2xl shadow-2xl overflow-hidden my-6 text-[#e2e8f0]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-background/80 backdrop-blur-sm overflow-y-auto">
+      <div className="relative w-full max-w-[620px] bg-card border border-border rounded-xl shadow-2xl overflow-hidden my-6 text-foreground animate-rise">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-[#172230]">
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-border bg-card/90">
           <div className="flex items-center gap-3">
-            <h2 className="text-white font-bold text-lg tracking-tight font-sans">
+            <h2 className="text-foreground font-bold text-lg tracking-tight font-num">
               Log a Trade
             </h2>
             <button
@@ -209,7 +209,7 @@ export const LogTradeModal = () => {
                 setIsLogTradeOpen(false);
                 setIsScanModalOpen(true);
               }}
-              className="flex items-center gap-1.5 px-2.5 py-1 bg-[#0e271f] hover:bg-[#13372b] text-[#00f098] border border-[#00f098]/40 hover:border-[#00f098]/70 rounded-lg text-[11px] font-bold font-mono transition shadow-xs cursor-pointer"
+              className="flex items-center gap-1.5 px-2.5 py-1 bg-profit/15 hover:bg-profit/25 text-profit border border-profit/40 hover:border-profit/70 rounded-lg text-[11px] font-bold font-num transition shadow-xs cursor-pointer"
             >
               <Camera className="w-3 h-3" />
               <span>Scan MT4/MT5 Screenshot</span>
@@ -218,7 +218,7 @@ export const LogTradeModal = () => {
           <button
             type="button"
             onClick={() => setIsLogTradeOpen(false)}
-            className="text-[#64748b] hover:text-white p-1 rounded-lg transition"
+            className="text-muted-foreground hover:text-foreground p-1 rounded-lg transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -230,7 +230,7 @@ export const LogTradeModal = () => {
           <div className="grid grid-cols-12 gap-3">
             {/* Pair */}
             <div className="col-span-12 sm:col-span-4 space-y-1.5">
-              <label className="block text-[#94a3b8] text-xs font-medium font-sans">
+              <label className="block text-muted-foreground text-xs font-medium">
                 Pair
               </label>
               <input
@@ -239,7 +239,7 @@ export const LogTradeModal = () => {
                 onChange={(e) => setPair(e.target.value.toUpperCase())}
                 placeholder="XAUUSD"
                 required
-                className="w-full bg-[#080d12] text-[#00f098] font-bold text-sm font-mono border border-[#1e2c3d] rounded-xl px-3.5 py-2 focus:outline-hidden focus:border-[#00f098]/70 tracking-wide"
+                className="w-full bg-secondary/40 text-profit font-bold text-sm font-num border border-border rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:border-primary tracking-wide"
               />
               <div className="flex items-center gap-1.5 pt-1">
                 {[
@@ -256,10 +256,10 @@ export const LogTradeModal = () => {
                         setPair(item.value);
                         setEntryPrice(item.defaultPrice);
                       }}
-                      className={`px-2 py-0.5 text-[10px] font-mono font-bold rounded border transition-all cursor-pointer ${
+                      className={`px-2 py-0.5 text-[10px] font-num font-bold rounded border transition-all cursor-pointer ${
                         isSelected
-                          ? 'bg-[#00f098]/20 text-[#00f098] border-[#00f098]/60 shadow-[0_0_8px_rgba(0,240,152,0.25)]'
-                          : 'bg-[#0b1219] text-[#64748b] border-[#182635] hover:text-[#94a3b8]'
+                          ? 'bg-profit/20 text-profit border-profit/60 shadow-[0_0_8px_rgba(18,213,134,0.25)]'
+                          : 'bg-secondary/40 text-muted-foreground border-border hover:text-foreground'
                       }`}
                     >
                       {item.label}
@@ -271,17 +271,17 @@ export const LogTradeModal = () => {
 
             {/* Direction */}
             <div className="col-span-12 sm:col-span-5 space-y-1.5">
-              <label className="block text-[#94a3b8] text-xs font-medium font-sans">
+              <label className="block text-muted-foreground text-xs font-medium">
                 Direction
               </label>
               <div className="grid grid-cols-2 gap-2">
                 <button
                   type="button"
                   onClick={() => setDirection('buy')}
-                  className={`py-2 px-3 text-xs font-bold rounded-xl border transition-all flex items-center justify-center gap-1 font-mono ${
+                  className={`py-2.5 px-3 text-xs font-bold rounded-xl border transition-all flex items-center justify-center gap-1 font-num cursor-pointer ${
                     direction === 'buy'
-                      ? 'bg-[#0e271f] text-[#00f098] border-[#00f098]/60 shadow-[0_0_12px_rgba(0,240,152,0.18)]'
-                      : 'bg-[#080d12] text-[#64748b] border-[#1e2c3d] hover:text-[#94a3b8]'
+                      ? 'bg-profit/15 text-profit border-profit/60 shadow-[0_0_12px_rgba(18,213,134,0.2)]'
+                      : 'bg-secondary/40 text-muted-foreground border-border hover:text-foreground'
                   }`}
                 >
                   <span>▲</span> BUY
@@ -289,10 +289,10 @@ export const LogTradeModal = () => {
                 <button
                   type="button"
                   onClick={() => setDirection('sell')}
-                  className={`py-2 px-3 text-xs font-bold rounded-xl border transition-all flex items-center justify-center gap-1 font-mono ${
+                  className={`py-2.5 px-3 text-xs font-bold rounded-xl border transition-all flex items-center justify-center gap-1 font-num cursor-pointer ${
                     direction === 'sell'
-                      ? 'bg-[#291318] text-[#ff4d4d] border-[#ff4d4d]/60 shadow-[0_0_12px_rgba(255,77,77,0.18)]'
-                      : 'bg-[#080d12] text-[#64748b] border-[#1e2c3d] hover:text-[#94a3b8]'
+                      ? 'bg-loss/15 text-loss border-loss/60 shadow-[0_0_12px_rgba(239,68,68,0.2)]'
+                      : 'bg-secondary/40 text-muted-foreground border-border hover:text-foreground'
                   }`}
                 >
                   <span>▼</span> SELL
@@ -302,7 +302,7 @@ export const LogTradeModal = () => {
 
             {/* Lots */}
             <div className="col-span-12 sm:col-span-3 space-y-1.5">
-              <label className="block text-[#94a3b8] text-xs font-medium font-sans">
+              <label className="block text-muted-foreground text-xs font-medium">
                 Lots
               </label>
               <input
@@ -312,7 +312,7 @@ export const LogTradeModal = () => {
                 value={lots}
                 onChange={(e) => setLots(e.target.value)}
                 required
-                className="w-full bg-[#080d12] text-white font-mono text-sm border border-[#1e2c3d] rounded-xl px-3.5 py-2 focus:outline-hidden focus:border-[#00f098]/70"
+                className="w-full bg-secondary/40 text-foreground font-num text-sm border border-border rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:border-primary"
               />
             </div>
           </div>
@@ -320,7 +320,7 @@ export const LogTradeModal = () => {
           {/* Row 2: Entry Price, Stop Loss, Take Profit, Session */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="space-y-1.5">
-              <label className="block text-[#94a3b8] text-xs font-medium font-sans">
+              <label className="block text-muted-foreground text-xs font-medium">
                 Entry price
               </label>
               <input
@@ -330,12 +330,12 @@ export const LogTradeModal = () => {
                 onChange={(e) => setEntryPrice(e.target.value)}
                 placeholder="1.0850"
                 required
-                className="w-full bg-[#080d12] text-white font-mono text-xs border border-[#1e2c3d] rounded-xl px-3 py-2 focus:outline-hidden focus:border-[#00f098]/70"
+                className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border rounded-xl px-3 py-2.5 focus:outline-hidden focus:border-primary"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-[#94a3b8] text-xs font-medium font-sans">
+              <label className="block text-loss text-xs font-medium">
                 Stop loss
               </label>
               <input
@@ -344,12 +344,12 @@ export const LogTradeModal = () => {
                 value={stopLoss}
                 onChange={(e) => setStopLoss(e.target.value)}
                 placeholder="optional"
-                className="w-full bg-[#080d12] text-white font-mono text-xs border border-[#1e2c3d] rounded-xl px-3 py-2 placeholder-[#546577] focus:outline-hidden focus:border-[#00f098]/70"
+                className="w-full bg-secondary/40 text-foreground font-num text-xs border border-loss/35 rounded-xl px-3 py-2.5 placeholder-muted-foreground/50 focus:outline-hidden focus:border-loss"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-[#94a3b8] text-xs font-medium font-sans">
+              <label className="block text-profit text-xs font-medium">
                 Take profit
               </label>
               <input
@@ -358,19 +358,19 @@ export const LogTradeModal = () => {
                 value={takeProfit}
                 onChange={(e) => setTakeProfit(e.target.value)}
                 placeholder="optional"
-                className="w-full bg-[#080d12] text-white font-mono text-xs border border-[#1e2c3d] rounded-xl px-3 py-2 placeholder-[#546577] focus:outline-hidden focus:border-[#00f098]/70"
+                className="w-full bg-secondary/40 text-foreground font-num text-xs border border-profit/35 rounded-xl px-3 py-2.5 placeholder-muted-foreground/50 focus:outline-hidden focus:border-profit"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-[#94a3b8] text-xs font-medium font-sans">
+              <label className="block text-muted-foreground text-xs font-medium">
                 Session
               </label>
               <div className="relative">
                 <select
                   value={session}
                   onChange={(e) => setSession(e.target.value)}
-                  className="w-full appearance-none bg-[#080d12] text-white text-xs border border-[#1e2c3d] rounded-xl px-3 py-2 pr-8 focus:outline-hidden focus:border-[#00f098]/70 cursor-pointer"
+                  className="w-full appearance-none bg-secondary/40 text-foreground text-xs border border-border rounded-xl px-3 py-2.5 pr-8 focus:outline-hidden focus:border-primary cursor-pointer"
                 >
                   {SESSIONS.map((s) => (
                     <option key={s.value} value={s.value}>
@@ -378,7 +378,7 @@ export const LogTradeModal = () => {
                     </option>
                   ))}
                 </select>
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#64748b] text-[10px]">
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-[10px]">
                   ▼
                 </span>
               </div>
@@ -386,20 +386,20 @@ export const LogTradeModal = () => {
           </div>
 
           {/* Row 3: Trade Closed? Switch */}
-          <div className="rounded-xl border border-[#1e2c3d] bg-[#080d12]/60 p-3.5 space-y-3">
+          <div className="rounded-xl border border-border bg-secondary/20 p-3.5 space-y-3">
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium text-white font-sans">
+              <span className="text-sm font-medium text-foreground">
                 Trade closed?
               </span>
               <button
                 type="button"
                 onClick={() => setIsClosed(!isClosed)}
                 className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
-                  isClosed ? 'bg-[#00f098]' : 'bg-[#1e2c3d]'
+                  isClosed ? 'bg-primary' : 'bg-secondary'
                 }`}
               >
                 <span
-                  className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-[#080d12] shadow-md transition duration-200 ease-in-out ${
+                  className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-card shadow-md transition duration-200 ease-in-out ${
                     isClosed ? 'translate-x-4' : 'translate-x-0'
                   }`}
                 />
@@ -408,9 +408,9 @@ export const LogTradeModal = () => {
 
             {/* Expanded fields when closed */}
             {isClosed && (
-              <div className="grid grid-cols-2 gap-3 pt-2 border-t border-[#1a2636]">
+              <div className="grid grid-cols-2 gap-3 pt-2 border-t border-border/60">
                 <div className="space-y-1.5">
-                  <label className="block text-[#94a3b8] text-xs font-medium font-sans">
+                  <label className="block text-muted-foreground text-xs font-medium">
                     Exit price
                   </label>
                   <input
@@ -419,11 +419,11 @@ export const LogTradeModal = () => {
                     value={exitPrice}
                     onChange={(e) => setExitPrice(e.target.value)}
                     placeholder="optional"
-                    className="w-full bg-[#080d12] text-white font-mono text-xs border border-[#1e2c3d] rounded-xl px-3 py-2 placeholder-[#546577] focus:outline-hidden focus:border-[#00f098]/70"
+                    className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border rounded-xl px-3 py-2.5 placeholder-muted-foreground/50 focus:outline-hidden focus:border-primary"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <label className="block text-[#94a3b8] text-xs font-medium font-sans">
+                  <label className="block text-muted-foreground text-xs font-medium">
                     P&L ({currency === 'INR' ? '₹' : 'USD'})
                   </label>
                   <input
@@ -433,18 +433,18 @@ export const LogTradeModal = () => {
                     onChange={(e) => setPnl(e.target.value)}
                     placeholder="e.g. 145.50 or -80"
                     required={isClosed}
-                    className="w-full bg-[#080d12] text-white font-mono text-xs border border-[#1e2c3d] rounded-xl px-3 py-2 placeholder-[#546577] focus:outline-hidden focus:border-[#00f098]/70"
+                    className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border rounded-xl px-3 py-2.5 placeholder-muted-foreground/50 focus:outline-hidden focus:border-primary"
                   />
                 </div>
                 <div className="col-span-2 space-y-1.5">
-                  <label className="block text-[#94a3b8] text-xs font-medium font-sans">
+                  <label className="block text-muted-foreground text-xs font-medium">
                     Close date
                   </label>
                   <input
                     type="date"
                     value={closedAt}
                     onChange={(e) => setClosedAt(e.target.value)}
-                    className="w-full bg-[#080d12] text-white font-mono text-xs border border-[#1e2c3d] rounded-xl px-3 py-2 focus:outline-hidden focus:border-[#00f098]/70"
+                    className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border rounded-xl px-3 py-2.5 focus:outline-hidden focus:border-primary"
                   />
                 </div>
               </div>
@@ -454,14 +454,14 @@ export const LogTradeModal = () => {
           {/* Row 4: Emotion at entry & Open date */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="block text-[#94a3b8] text-xs font-medium font-sans">
+              <label className="block text-muted-foreground text-xs font-medium">
                 Emotion at entry
               </label>
               <div className="relative">
                 <select
                   value={emotion}
                   onChange={(e) => setEmotion(e.target.value)}
-                  className="w-full appearance-none bg-[#080d12] text-white text-xs border border-[#1e2c3d] rounded-xl px-3.5 py-2.5 pr-8 focus:outline-hidden focus:border-[#00f098]/70 cursor-pointer capitalize"
+                  className="w-full appearance-none bg-secondary/40 text-foreground text-xs border border-border rounded-xl px-3.5 py-2.5 pr-8 focus:outline-hidden focus:border-primary cursor-pointer capitalize"
                 >
                   {EMOTIONS.map((em) => (
                     <option key={em} value={em} className="capitalize">
@@ -469,28 +469,28 @@ export const LogTradeModal = () => {
                     </option>
                   ))}
                 </select>
-                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#64748b] text-[10px]">
+                <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-[10px]">
                   ▼
                 </span>
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="block text-[#94a3b8] text-xs font-medium font-sans">
+              <label className="block text-muted-foreground text-xs font-medium">
                 Open date
               </label>
               <input
                 type="date"
                 value={openedAt}
                 onChange={(e) => setOpenedAt(e.target.value)}
-                className="w-full bg-[#080d12] text-white font-mono text-xs border border-[#1e2c3d] rounded-xl px-3.5 py-2 focus:outline-hidden focus:border-[#00f098]/70"
+                className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:border-primary"
               />
             </div>
           </div>
 
           {/* Row 5: Setup tags */}
           <div className="space-y-2">
-            <label className="block text-[#94a3b8] text-xs font-medium font-sans">
+            <label className="block text-muted-foreground text-xs font-medium">
               Setup tags
             </label>
             <div className="flex flex-wrap gap-1.5">
@@ -501,10 +501,10 @@ export const LogTradeModal = () => {
                     key={t}
                     type="button"
                     onClick={() => toggleTag(t)}
-                    className={`px-3 py-1 rounded-full text-[11px] font-mono border transition-all ${
+                    className={`px-3 py-1 rounded-full text-[11px] font-num border transition-all cursor-pointer ${
                       active
-                        ? 'bg-[#00f098]/15 border-[#00f098]/60 text-[#00f098]'
-                        : 'bg-[#080d12] border-[#1e2c3d] text-[#8092a4] hover:text-white hover:border-[#2a3c52]'
+                        ? 'bg-profit/15 border-profit/60 text-profit'
+                        : 'bg-secondary/40 border-border text-muted-foreground hover:text-foreground hover:border-border/80'
                     }`}
                   >
                     {t}
@@ -518,13 +518,13 @@ export const LogTradeModal = () => {
               onChange={(e) => setCustomTag(e.target.value)}
               onKeyDown={handleCustomTagKeyDown}
               placeholder="Type a custom tag + Enter"
-              className="w-full bg-[#080d12] text-xs text-white placeholder-[#546577] border border-[#1e2c3d] rounded-xl px-3.5 py-2 focus:outline-hidden focus:border-[#00f098]/70"
+              className="w-full bg-secondary/40 text-xs text-foreground placeholder-muted-foreground/50 border border-border rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:border-primary"
             />
           </div>
 
           {/* Row 6: Notes */}
           <div className="space-y-1.5">
-            <label className="block text-[#94a3b8] text-xs font-medium font-sans">
+            <label className="block text-muted-foreground text-xs font-medium">
               Notes
             </label>
             <textarea
@@ -532,28 +532,28 @@ export const LogTradeModal = () => {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Why did you take this trade? What did you see? What would you do differently?"
-              className="w-full bg-[#080d12] text-xs text-white placeholder-[#546577] border border-[#1e2c3d] rounded-xl p-3 focus:outline-hidden focus:border-[#00f098]/70 leading-relaxed resize-y"
+              className="w-full bg-secondary/40 text-xs text-foreground placeholder-muted-foreground/50 border border-border rounded-xl p-3 focus:outline-hidden focus:border-primary leading-relaxed resize-y"
             />
           </div>
 
           {/* Row 7: Chart screenshots (Entry & Exit) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="block text-[#00f098] text-xs font-medium font-sans flex items-center justify-between">
+              <label className="block text-profit text-xs font-medium flex items-center justify-between">
                 <span>Entry Chart screenshot</span>
-                <span className="text-[10px] text-[#64748b]">optional</span>
+                <span className="text-[10px] text-muted-foreground">optional</span>
               </label>
               {preview ? (
                 <div className="relative w-fit">
                   <img
                     src={preview}
                     alt="Entry Chart preview"
-                    className="h-24 rounded-xl border border-[#1e2c3d] object-cover"
+                    className="h-24 rounded-xl border border-border object-cover"
                   />
                   <button
                     type="button"
                     onClick={clearFile}
-                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[#ff4d4d] text-white flex items-center justify-center text-xs shadow-md cursor-pointer hover:bg-[#dc2626]"
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-loss text-white flex items-center justify-center text-xs shadow-md cursor-pointer hover:bg-loss/90"
                   >
                     ✕
                   </button>
@@ -562,9 +562,9 @@ export const LogTradeModal = () => {
                 <button
                   type="button"
                   onClick={() => fileRef.current?.click()}
-                  className="flex items-center justify-center gap-2 text-xs text-[#8092a4] border border-dashed border-[#1e2c3d] hover:border-[#00f098]/50 hover:text-white rounded-xl px-4 py-3.5 w-full transition cursor-pointer"
+                  className="flex items-center justify-center gap-2 text-xs text-muted-foreground border border-dashed border-border hover:border-profit/60 hover:text-foreground rounded-xl px-4 py-3.5 w-full transition cursor-pointer bg-secondary/20"
                 >
-                  <ImagePlus className="w-4 h-4 text-[#00f098]" />
+                  <ImagePlus className="w-4 h-4 text-profit" />
                   <span>Attach Entry Chart</span>
                 </button>
               )}
@@ -579,21 +579,21 @@ export const LogTradeModal = () => {
 
             {isClosed && (
               <div className="space-y-1.5">
-                <label className="block text-[#38bdf8] text-xs font-medium font-sans flex items-center justify-between">
+                <label className="block text-sky-400 text-xs font-medium flex items-center justify-between">
                   <span>Exit Chart screenshot</span>
-                  <span className="text-[10px] text-[#64748b]">optional</span>
+                  <span className="text-[10px] text-muted-foreground">optional</span>
                 </label>
                 {exitPreview ? (
                   <div className="relative w-fit">
                     <img
                       src={exitPreview}
                       alt="Exit Chart preview"
-                      className="h-24 rounded-xl border border-[#1e2c3d] object-cover"
+                      className="h-24 rounded-xl border border-border object-cover"
                     />
                     <button
                       type="button"
                       onClick={clearExitFile}
-                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[#ff4d4d] text-white flex items-center justify-center text-xs shadow-md cursor-pointer hover:bg-[#dc2626]"
+                      className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-loss text-white flex items-center justify-center text-xs shadow-md cursor-pointer hover:bg-loss/90"
                     >
                       ✕
                     </button>
@@ -602,9 +602,9 @@ export const LogTradeModal = () => {
                   <button
                     type="button"
                     onClick={() => exitFileRef.current?.click()}
-                    className="flex items-center justify-center gap-2 text-xs text-[#8092a4] border border-dashed border-[#1e2c3d] hover:border-[#38bdf8]/50 hover:text-white rounded-xl px-4 py-3.5 w-full transition cursor-pointer"
+                    className="flex items-center justify-center gap-2 text-xs text-muted-foreground border border-dashed border-border hover:border-sky-400/60 hover:text-foreground rounded-xl px-4 py-3.5 w-full transition cursor-pointer bg-secondary/20"
                   >
-                    <ImagePlus className="w-4 h-4 text-[#38bdf8]" />
+                    <ImagePlus className="w-4 h-4 text-sky-400" />
                     <span>Attach Exit Chart</span>
                   </button>
                 )}
@@ -629,12 +629,12 @@ export const LogTradeModal = () => {
           </div>
 
           {/* Row 8: Followed my trading plan */}
-          <div className="flex items-center justify-between rounded-xl border border-[#1e2c3d] bg-[#080d12]/50 px-4 py-3">
+          <div className="flex items-center justify-between rounded-xl border border-border bg-secondary/30 px-4 py-3">
             <div>
-              <span className="text-sm font-medium text-white block font-sans">
+              <span className="text-sm font-medium text-foreground block">
                 Followed my trading plan
               </span>
-              <p className="text-[11px] text-[#64748b] mt-0.5 font-sans">
+              <p className="text-[11px] text-muted-foreground mt-0.5">
                 Plan: {activeRulesCount} active rules
               </p>
             </div>
@@ -642,11 +642,11 @@ export const LogTradeModal = () => {
               type="button"
               onClick={() => setFollowedPlan(!followedPlan)}
               className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-hidden ${
-                followedPlan ? 'bg-[#00f098]' : 'bg-[#1e2c3d]'
+                followedPlan ? 'bg-primary' : 'bg-secondary'
               }`}
             >
               <span
-                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-[#080d12] shadow-md transition duration-200 ease-in-out ${
+                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-card shadow-md transition duration-200 ease-in-out ${
                   followedPlan ? 'translate-x-4' : 'translate-x-0'
                 }`}
               />
@@ -654,17 +654,17 @@ export const LogTradeModal = () => {
           </div>
 
           {/* Footer Actions */}
-          <div className="flex justify-end gap-2.5 pt-2 border-t border-[#172230]">
+          <div className="flex justify-end gap-2.5 pt-2 border-t border-border">
             <button
               type="button"
               onClick={() => setIsLogTradeOpen(false)}
-              className="px-4 py-2 text-xs font-semibold text-[#8092a4] hover:text-white rounded-xl bg-[#080d12] border border-[#1e2c3d] hover:bg-[#121c27] transition"
+              className="px-4 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground rounded-xl bg-secondary/50 border border-border hover:bg-secondary transition cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-5 py-2 bg-[#00f098] hover:bg-[#00f098]/90 text-[#080d12] font-extrabold text-xs rounded-xl shadow-[0_0_15px_rgba(0,240,152,0.3)] transition"
+              className="px-5 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
             >
               Log trade
             </button>

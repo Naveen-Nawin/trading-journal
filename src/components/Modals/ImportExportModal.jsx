@@ -76,37 +76,37 @@ export const ImportExportModal = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
-      <div className="relative w-full max-w-lg bg-[#090e14] border border-[#1b2b3b] rounded-2xl shadow-2xl p-6 space-y-4">
-        <div className="flex items-center justify-between border-b border-[#141f2b] pb-3">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+      <div className="relative w-full max-w-lg bg-card border border-border rounded-xl shadow-2xl p-6 space-y-4 animate-rise">
+        <div className="flex items-center justify-between border-b border-border pb-3">
           <div className="flex items-center gap-2">
-            <Upload className="w-5 h-5 text-[#00f098]" />
-            <h2 className="text-white font-extrabold text-base tracking-wide">
+            <Upload className="w-5 h-5 text-profit" />
+            <h2 className="text-foreground font-bold text-base tracking-wide font-num">
               Import Trades from CSV
             </h2>
           </div>
           <button
             onClick={() => setIsImportExportOpen(false)}
-            className="p-1 text-[#64748b] hover:text-white"
+            className="p-1 text-muted-foreground hover:text-foreground cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <div>
-          <label className="block text-[#64748b] text-xs font-semibold mb-2">
+          <label className="block text-muted-foreground text-xs font-semibold mb-2">
             Select CSV File from your computer:
           </label>
           <input
             type="file"
             accept=".csv,text/csv"
             onChange={handleFileUpload}
-            className="w-full text-xs text-[#cbd5e1] file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-[#00f098] file:text-[#080d12] hover:file:bg-[#00f098]/90 cursor-pointer"
+            className="w-full text-xs text-foreground file:mr-3 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90 cursor-pointer"
           />
         </div>
 
         <div>
-          <label className="block text-[#64748b] text-xs font-semibold mb-1">
+          <label className="block text-muted-foreground text-xs font-semibold mb-1">
             Or paste CSV content directly:
           </label>
           <textarea
@@ -114,28 +114,28 @@ export const ImportExportModal = () => {
             value={csvText}
             onChange={(e) => setCsvText(e.target.value)}
             placeholder="pair,direction,session,lots,entryPrice,exitPrice,pnl,date,status..."
-            className="w-full bg-[#06090d] text-white font-mono text-xs border border-[#16222f] rounded-xl p-3 focus:outline-hidden focus:border-[#00f098]/60"
+            className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border rounded-xl p-3 focus:outline-hidden focus:border-primary"
           />
         </div>
 
         {statusMessage && (
-          <div className="text-xs text-[#00f098] bg-[#00f098]/10 p-2.5 rounded-lg border border-[#00f098]/30">
+          <div className="text-xs text-profit bg-profit/15 p-2.5 rounded-lg border border-profit/35 font-num">
             {statusMessage}
           </div>
         )}
 
-        <div className="flex justify-end gap-2 pt-2 border-t border-[#141f2b]">
+        <div className="flex justify-end gap-2 pt-2 border-t border-border">
           <button
             type="button"
             onClick={() => setIsImportExportOpen(false)}
-            className="px-4 py-2 text-xs font-semibold text-[#8092a4] hover:text-white"
+            className="px-4 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground cursor-pointer rounded-xl"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={handleParseAndImport}
-            className="px-5 py-2 text-xs font-bold bg-[#00f098] hover:bg-[#00f098]/90 text-[#080d12] rounded-xl shadow-[0_0_12px_rgba(0,240,152,0.3)]"
+            className="px-5 py-2 text-xs font-bold bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl shadow-xs cursor-pointer"
           >
             Import Trades
           </button>
@@ -144,4 +144,3 @@ export const ImportExportModal = () => {
     </div>
   );
 };
-

@@ -11,21 +11,21 @@ export const EquityCurveChart = () => {
 
   if (stats.closedCount === 0) {
     return (
-      <div className="bg-[#0b1117] border border-[#16222f] rounded-xl p-5 shadow-sm h-80 flex flex-col justify-between">
+      <div className="rounded-xl border border-border bg-card/70 backdrop-blur-sm p-5 shadow-xs h-80 flex flex-col justify-between animate-rise">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-white text-xs font-bold tracking-widest uppercase">
-            EQUITY CURVE
+          <h3 className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+            Equity Curve
           </h3>
-          <span className="text-[#64748b] text-[11px] font-mono">
+          <span className="text-muted-foreground/60 text-[11px] font-num">
             cumulative P&L · closed trades
           </span>
         </div>
         <div className="flex-1 flex flex-col items-center justify-center text-center p-6 space-y-2">
-          <div className="w-12 h-12 rounded-full bg-[#00f098]/10 border border-[#00f098]/20 flex items-center justify-center text-[#00f098] mb-1">
+          <div className="w-12 h-12 rounded-full bg-profit/10 border border-profit/25 flex items-center justify-center text-profit mb-1">
             📈
           </div>
-          <div className="text-sm font-semibold text-white">No closed trades yet</div>
-          <p className="text-xs text-[#64748b] max-w-sm">
+          <div className="text-sm font-semibold text-foreground">No closed trades yet</div>
+          <p className="text-xs text-muted-foreground max-w-sm">
             Click &ldquo;+ Log Trade&rdquo; to record your trades. Once closed, your equity growth curve will automatically appear here.
           </p>
         </div>
@@ -101,7 +101,6 @@ export const EquityCurveChart = () => {
     const rect = containerRef.current.getBoundingClientRect();
     const mouseX = ((e.clientX - rect.left) / rect.width) * width;
     
-    // Find closest point
     let closestIdx = 0;
     let minDiff = Infinity;
     points.forEach((p, idx) => {
@@ -122,13 +121,13 @@ export const EquityCurveChart = () => {
   const activeData = hoverIndex !== null ? data[hoverIndex] : null;
 
   return (
-    <div className="bg-[#0b1117] border border-[#16222f] rounded-xl p-5 shadow-sm relative overflow-hidden flex flex-col justify-between">
+    <div className="rounded-xl border border-border bg-card/70 backdrop-blur-sm p-5 shadow-xs relative overflow-hidden flex flex-col justify-between animate-rise">
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-white text-xs font-bold tracking-widest uppercase">
-          EQUITY CURVE
+        <h3 className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+          Equity Curve
         </h3>
-        <span className="text-[#64748b] text-[11px] font-mono">
+        <span className="text-muted-foreground/60 text-[11px] font-num">
           cumulative P&L · closed trades
         </span>
       </div>
@@ -146,9 +145,9 @@ export const EquityCurveChart = () => {
         >
           <defs>
             <linearGradient id="equityGlow" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#00f098" stopOpacity="0.35" />
-              <stop offset="60%" stopColor="#00f098" stopOpacity="0.08" />
-              <stop offset="100%" stopColor="#00f098" stopOpacity="0.0" />
+              <stop offset="0%" stopColor="hsl(160 84% 45%)" stopOpacity="0.32" />
+              <stop offset="60%" stopColor="hsl(160 84% 45%)" stopOpacity="0.08" />
+              <stop offset="100%" stopColor="hsl(160 84% 45%)" stopOpacity="0.0" />
             </linearGradient>
             <filter id="lineGlow" x="-20%" y="-20%" width="140%" height="140%">
               <feGaussianBlur stdDeviation="3" result="blur" />
@@ -173,7 +172,7 @@ export const EquityCurveChart = () => {
                   y1={y}
                   x2={width - padding.right}
                   y2={y}
-                  stroke="#15212c"
+                  stroke="hsl(217 22% 17%)"
                   strokeWidth="1"
                   strokeDasharray="3 3"
                 />
@@ -181,9 +180,9 @@ export const EquityCurveChart = () => {
                   x={padding.left - 10}
                   y={y + 3}
                   textAnchor="end"
-                  fill="#546577"
+                  fill="hsl(215 15% 58%)"
                   fontSize="10"
-                  fontFamily="monospace"
+                  fontFamily="var(--font-jetbrains-mono), monospace"
                 >
                   {formattedVal}
                 </text>
@@ -202,9 +201,9 @@ export const EquityCurveChart = () => {
                 x={x}
                 y={height - 10}
                 textAnchor="middle"
-                fill="#546577"
+                fill="hsl(215 15% 58%)"
                 fontSize="10"
-                fontFamily="monospace"
+                fontFamily="var(--font-jetbrains-mono), monospace"
               >
                 {item.date}
               </text>
@@ -221,7 +220,7 @@ export const EquityCurveChart = () => {
             <path
               d={pathD}
               fill="none"
-              stroke="#00f098"
+              stroke="hsl(160 84% 45%)"
               strokeWidth="2.5"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -238,7 +237,7 @@ export const EquityCurveChart = () => {
                 y1={padding.top}
                 x2={activePoint.x}
                 y2={padding.top + chartHeight}
-                stroke="#00f098"
+                stroke="hsl(160 84% 45%)"
                 strokeWidth="1"
                 strokeDasharray="2 2"
                 opacity="0.7"
@@ -248,7 +247,7 @@ export const EquityCurveChart = () => {
                 cx={activePoint.x}
                 cy={activePoint.y}
                 r="7"
-                fill="#00f098"
+                fill="hsl(160 84% 45%)"
                 fillOpacity="0.25"
               />
               {/* Center point */}
@@ -256,8 +255,8 @@ export const EquityCurveChart = () => {
                 cx={activePoint.x}
                 cy={activePoint.y}
                 r="3.5"
-                fill="#00f098"
-                stroke="#080d12"
+                fill="hsl(160 84% 45%)"
+                stroke="hsl(221 39% 6%)"
                 strokeWidth="1.5"
               />
             </g>
@@ -267,22 +266,22 @@ export const EquityCurveChart = () => {
         {/* Hover Tooltip Overlay */}
         {activePoint && activeData && (
           <div
-            className="absolute z-20 pointer-events-none transform -translate-x-1/2 -translate-y-full bg-[#0d1620] border border-[#00f098]/40 px-3 py-2 rounded-lg shadow-xl text-left"
+            className="absolute z-20 pointer-events-none transform -translate-x-1/2 -translate-y-full bg-card/95 border border-profit/50 px-3 py-2 rounded-xl shadow-xl text-left backdrop-blur-md"
             style={{
               left: `${(activePoint.x / width) * 100}%`,
               top: `${(activePoint.y / height) * 100 - 8}%`,
             }}
           >
-            <div className="text-[10px] text-[#64748b] font-mono">
+            <div className="text-[10px] text-muted-foreground font-num">
               {activeData.fullDate || activeData.date} {activeData.pair ? `· ${activeData.pair}` : ''}
             </div>
-            <div className="text-white font-mono font-bold text-xs">
+            <div className="text-foreground font-num font-bold text-xs">
               Equity: {formatCurrencyRaw(activeData.cumPnl, currency, true)}
             </div>
             {activeData.pnl !== 0 && (
               <div
-                className={`text-[11px] font-mono font-semibold ${
-                  activeData.pnl > 0 ? 'text-[#00f098]' : 'text-[#ff4d4d]'
+                className={`text-[11px] font-num font-semibold ${
+                  activeData.pnl > 0 ? 'text-profit' : 'text-loss'
                 }`}
               >
                 Trade: {formatCurrencyRaw(activeData.pnl, currency, true)}
@@ -294,4 +293,3 @@ export const EquityCurveChart = () => {
     </div>
   );
 };
-

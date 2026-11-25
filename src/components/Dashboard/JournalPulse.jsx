@@ -6,16 +6,16 @@ export const JournalPulse = () => {
   const { stats, currency } = useTrading();
 
   const getPnlColor = (val, isPositiveType = false) => {
-    if (val > 0) return 'text-[#00f098]';
-    if (val < 0) return 'text-[#ff4d4d]';
-    return isPositiveType ? 'text-[#8092a4]' : 'text-[#64748b]';
+    if (val > 0) return 'text-profit';
+    if (val < 0) return 'text-loss';
+    return isPositiveType ? 'text-muted-foreground' : 'text-muted-foreground/70';
   };
 
   const items = [
     {
       label: 'Best trade',
       value: formatCurrencyRaw(stats.bestTrade, currency, true),
-      colorClass: stats.bestTrade > 0 ? 'text-[#00f098]' : 'text-[#64748b]',
+      colorClass: stats.bestTrade > 0 ? 'text-profit' : 'text-muted-foreground',
     },
     {
       label: 'Worst trade',
@@ -25,25 +25,25 @@ export const JournalPulse = () => {
     {
       label: 'Gross profit',
       value: formatCurrencyRaw(stats.grossProfit, currency, false),
-      colorClass: stats.grossProfit > 0 ? 'text-[#e2e8f0]' : 'text-[#64748b]',
+      colorClass: stats.grossProfit > 0 ? 'text-foreground' : 'text-muted-foreground',
     },
     {
       label: 'Gross loss',
       value: formatCurrencyRaw(stats.grossLoss, currency, false),
-      colorClass: stats.grossLoss < 0 ? 'text-[#ff4d4d]' : 'text-[#64748b]',
+      colorClass: stats.grossLoss < 0 ? 'text-loss' : 'text-muted-foreground',
     },
     {
       label: 'Max drawdown',
       value: formatCurrencyRaw(stats.maxDrawdown, currency, false),
-      colorClass: stats.maxDrawdown < 0 ? 'text-[#ff4d4d]' : 'text-[#64748b]',
+      colorClass: stats.maxDrawdown < 0 ? 'text-loss' : 'text-muted-foreground',
     },
   ];
 
   return (
-    <div className="bg-[#0b1117] border border-[#16222f] rounded-xl p-5 shadow-sm flex flex-col justify-between">
+    <div className="rounded-xl border border-border bg-card/70 backdrop-blur-sm p-5 shadow-xs flex flex-col justify-between animate-rise">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-white text-xs font-bold tracking-widest uppercase">
-          JOURNAL PULSE
+        <h3 className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+          Journal Pulse
         </h3>
       </div>
 
@@ -51,12 +51,12 @@ export const JournalPulse = () => {
         {items.map((item, idx) => (
           <div
             key={idx}
-            className="flex items-center justify-between py-1 border-b border-[#141e2a]/50 last:border-b-0"
+            className="flex items-center justify-between py-1 border-b border-border/40 last:border-b-0"
           >
-            <span className="text-[#8092a4] text-xs font-medium">
+            <span className="text-muted-foreground text-xs font-medium">
               {item.label}
             </span>
-            <span className={`text-sm font-mono font-semibold ${item.colorClass}`}>
+            <span className={`text-sm font-num font-semibold ${item.colorClass}`}>
               {item.value}
             </span>
           </div>
@@ -65,4 +65,3 @@ export const JournalPulse = () => {
     </div>
   );
 };
-

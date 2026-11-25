@@ -129,13 +129,13 @@ export const TradesView = () => {
   return (
     <div className="space-y-6 pb-24">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 animate-rise">
         <div>
-          <div className="text-[#64748b] text-[11px] font-bold tracking-widest uppercase mb-1">
-            TRADE LOG
+          <div className="text-muted-foreground text-[11px] font-bold tracking-widest uppercase mb-1">
+            Trade Log
           </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
-            Your Trades
+          <h1 className="text-2xl md:text-3xl font-extrabold text-foreground tracking-tight">
+            Trade <span className="text-profit glow-green">Journal</span>
           </h1>
         </div>
 
@@ -143,21 +143,21 @@ export const TradesView = () => {
         <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setIsScanModalOpen(true)}
-            className="flex items-center gap-2 px-3.5 py-2 bg-[#0e271f] hover:bg-[#13372b] text-[#00f098] border border-[#00f098]/40 hover:border-[#00f098]/70 rounded-lg text-xs font-bold shadow-[0_0_12px_rgba(0,240,152,0.15)] transition cursor-pointer"
+            className="flex items-center gap-2 px-3.5 py-2 bg-profit/15 hover:bg-profit/25 text-profit border border-profit/40 hover:border-profit/70 rounded-xl text-xs font-bold shadow-xs transition cursor-pointer"
           >
             <Camera className="w-3.5 h-3.5" />
             <span>Scan Screenshot</span>
           </button>
           <button
             onClick={() => setIsImportExportOpen(true)}
-            className="flex items-center gap-2 px-3.5 py-2 bg-[#0b1117] hover:bg-[#121c27] text-[#cbd5e1] hover:text-white border border-[#1b2837] rounded-lg text-xs font-semibold transition cursor-pointer"
+            className="flex items-center gap-2 px-3.5 py-2 bg-secondary/50 hover:bg-secondary text-foreground border border-border rounded-xl text-xs font-semibold transition cursor-pointer"
           >
             <Upload className="w-3.5 h-3.5" />
             <span>Import CSV</span>
           </button>
           <button
             onClick={exportCSV}
-            className="flex items-center gap-2 px-3.5 py-2 bg-[#0b1117] hover:bg-[#121c27] text-[#cbd5e1] hover:text-white border border-[#1b2837] rounded-lg text-xs font-semibold transition cursor-pointer"
+            className="flex items-center gap-2 px-3.5 py-2 bg-secondary/50 hover:bg-secondary text-foreground border border-border rounded-xl text-xs font-semibold transition cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Export CSV</span>
@@ -166,17 +166,17 @@ export const TradesView = () => {
       </div>
 
       {/* Filters Toolbar */}
-      <div className="bg-[#0b1117] border border-[#16222f] rounded-xl p-4 flex flex-wrap items-center gap-3">
+      <div className="rounded-xl border border-border bg-card/70 backdrop-blur-sm p-4 flex flex-wrap items-center gap-3 animate-rise shadow-xs">
         {/* Status Pills */}
-        <div className="flex items-center bg-[#070b0f] p-1 rounded-lg border border-[#16222f]">
+        <div className="flex items-center bg-secondary/40 p-1 rounded-xl border border-border">
           {['ALL', 'OPEN', 'CLOSED'].map((st) => (
             <button
               key={st}
               onClick={() => setStatusFilter(st)}
-              className={`px-3 py-1 text-xs font-bold rounded-md transition-all ${
+              className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 statusFilter === st
-                  ? 'bg-[#00f098]/20 text-[#00f098] border border-[#00f098]/40 shadow-xs'
-                  : 'text-[#64748b] hover:text-white'
+                  ? 'bg-profit/15 text-profit border border-profit/40 shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               {st === 'ALL' ? 'All' : st === 'OPEN' ? 'Open' : 'Closed'}
@@ -189,7 +189,7 @@ export const TradesView = () => {
           <select
             value={pairFilter}
             onChange={(e) => setPairFilter(e.target.value)}
-            className="bg-[#070b0f] text-xs font-mono text-[#cbd5e1] border border-[#16222f] rounded-lg px-3 py-1.5 focus:outline-hidden focus:border-[#00f098]/50 cursor-pointer"
+            className="bg-secondary/40 text-xs font-num text-foreground border border-border rounded-xl px-3 py-2 focus:outline-hidden focus:border-primary cursor-pointer"
           >
             <option value="ALL">All pairs</option>
             {uniquePairs.map((p) => (
@@ -205,7 +205,7 @@ export const TradesView = () => {
           <select
             value={sessionFilter}
             onChange={(e) => setSessionFilter(e.target.value)}
-            className="bg-[#070b0f] text-xs text-[#cbd5e1] border border-[#16222f] rounded-lg px-3 py-1.5 focus:outline-hidden focus:border-[#00f098]/50 cursor-pointer"
+            className="bg-secondary/40 text-xs text-foreground border border-border rounded-xl px-3 py-2 focus:outline-hidden focus:border-primary cursor-pointer"
           >
             <option value="ALL">All sessions</option>
             {uniqueSessions.map((s) => (
@@ -217,17 +217,17 @@ export const TradesView = () => {
         </div>
 
         {/* Date Filter */}
-        <div className="flex items-center gap-1 bg-[#070b0f] border border-[#16222f] rounded-lg px-2.5 py-1">
+        <div className="flex items-center gap-1 bg-secondary/40 border border-border rounded-xl px-3 py-1.5">
           <input
             type="date"
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value)}
-            className="bg-transparent text-xs text-[#cbd5e1] font-mono focus:outline-hidden"
+            className="bg-transparent text-xs text-foreground font-num focus:outline-hidden"
           />
           {dateFilter && (
             <button
               onClick={() => setDateFilter('')}
-              className="text-[#64748b] hover:text-white text-xs ml-1"
+              className="text-muted-foreground hover:text-foreground text-xs ml-1 cursor-pointer"
             >
               ×
             </button>
@@ -236,18 +236,18 @@ export const TradesView = () => {
 
         {/* Search Notes */}
         <div className="flex-1 min-w-[200px] relative">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748b]" />
+          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search notes..."
-            className="w-full bg-[#070b0f] text-xs text-[#cbd5e1] placeholder-[#546577] border border-[#16222f] rounded-lg pl-8 pr-3 py-1.5 focus:outline-hidden focus:border-[#00f098]/50"
+            placeholder="Search notes, pair, or tag..."
+            className="w-full bg-secondary/40 text-xs text-foreground placeholder-muted-foreground/60 border border-border rounded-xl pl-8 pr-3 py-2 focus:outline-hidden focus:border-primary"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-[#64748b] hover:text-white text-xs"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs cursor-pointer"
             >
               ×
             </button>
@@ -256,15 +256,15 @@ export const TradesView = () => {
 
         {/* Bulk Action Controls */}
         {selectedTradeIds.length > 0 ? (
-          <div className="flex items-center gap-2 bg-[#ef4444]/15 border border-[#ef4444]/40 px-3 py-1.5 rounded-lg shadow-[0_0_15px_rgba(239,68,68,0.15)]">
-            <span className="text-xs font-mono font-bold text-[#ef4444]">
+          <div className="flex items-center gap-2 bg-loss/15 border border-loss/40 px-3 py-1.5 rounded-xl shadow-[0_0_15px_rgba(239,68,68,0.15)]">
+            <span className="text-xs font-num font-bold text-loss">
               {selectedTradeIds.length} Selected
             </span>
             <button
               type="button"
               onClick={() => setShowBulkDeleteConfirm(true)}
               disabled={isBulkDeleting}
-              className="flex items-center gap-1.5 px-3 py-1 bg-[#ef4444] hover:bg-[#dc2626] text-white rounded-md text-xs font-bold transition cursor-pointer shadow-[0_0_10px_rgba(239,68,68,0.3)] disabled:opacity-50"
+              className="flex items-center gap-1.5 px-3 py-1 bg-loss hover:bg-loss/90 text-white rounded-lg text-xs font-bold transition cursor-pointer shadow-[0_0_10px_rgba(239,68,68,0.3)] disabled:opacity-50"
             >
               <Trash2 className="w-3.5 h-3.5" />
               <span>{isBulkDeleting ? 'Deleting...' : `Delete Selected (${selectedTradeIds.length})`}</span>
@@ -272,7 +272,7 @@ export const TradesView = () => {
             <button
               type="button"
               onClick={() => setSelectedTradeIds([])}
-              className="text-xs text-[#8092a4] hover:text-white underline cursor-pointer ml-1"
+              className="text-xs text-muted-foreground hover:text-foreground underline cursor-pointer ml-1"
             >
               Deselect
             </button>
@@ -281,7 +281,7 @@ export const TradesView = () => {
           <button
             type="button"
             onClick={toggleSelectAll}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0b1117] hover:bg-[#121c27] text-[#8092a4] hover:text-[#00f098] border border-[#1b2837] hover:border-[#00f098]/30 rounded-lg text-xs font-semibold transition cursor-pointer"
+            className="flex items-center gap-1.5 px-3.5 py-2 bg-secondary/40 hover:bg-secondary text-muted-foreground hover:text-profit border border-border hover:border-profit/40 rounded-xl text-xs font-semibold transition cursor-pointer"
           >
             <span>Select All ({filteredTrades.length})</span>
           </button>
@@ -289,11 +289,11 @@ export const TradesView = () => {
       </div>
 
       {/* Trades Table */}
-      <div className="bg-[#0b1117] border border-[#16222f] rounded-2xl overflow-hidden shadow-xl">
+      <div className="rounded-xl border border-border bg-card/70 backdrop-blur-sm overflow-hidden shadow-xs animate-rise">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-[#141e2a] text-[#546577] text-[11px] font-mono font-bold tracking-wider">
+              <tr className="border-b border-border text-muted-foreground text-[11px] font-num font-bold tracking-wider uppercase bg-secondary/20">
                 <th className="py-3.5 px-3 w-16">
                   <div className="flex items-center gap-1.5">
                     <input
@@ -301,7 +301,7 @@ export const TradesView = () => {
                       checked={allFilteredSelected}
                       onChange={toggleSelectAll}
                       disabled={filteredTrades.length === 0}
-                      className="w-4 h-4 rounded border-[#1b2837] bg-[#070b0f] text-[#00f098] accent-[#00f098] cursor-pointer"
+                      className="w-4 h-4 rounded border-border bg-secondary/50 text-profit accent-profit cursor-pointer"
                       title={allFilteredSelected ? 'Deselect All' : 'Select All'}
                     />
                   </div>
@@ -317,16 +317,16 @@ export const TradesView = () => {
                 <th className="py-3.5 px-4 text-right">ACTIONS</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#121c27]/70 text-xs font-mono">
+            <tbody className="divide-y divide-border/40 text-xs font-num">
               {filteredTrades.length === 0 ? (
                 <tr>
-                  <td colSpan="10" className="py-16 text-center text-[#64748b]">
+                  <td colSpan="10" className="py-16 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center space-y-2">
-                      <div className="w-10 h-10 rounded-full bg-[#131f2b] flex items-center justify-center text-[#00f098] font-bold text-sm">
+                      <div className="w-10 h-10 rounded-full bg-profit/10 border border-profit/25 flex items-center justify-center text-profit font-bold text-sm">
                         +
                       </div>
-                      <div className="text-white font-medium text-sm">No trades logged yet</div>
-                      <p className="text-xs text-[#64748b] max-w-sm">
+                      <div className="text-foreground font-medium text-sm">No trades logged yet</div>
+                      <p className="text-xs text-muted-foreground max-w-sm">
                         Your trade journal is clean and ready. Click the green &ldquo;+ Log Trade&rdquo; button above to record your first trade.
                       </p>
                     </div>
@@ -344,25 +344,25 @@ export const TradesView = () => {
                   return (
                     <React.Fragment key={trade.id}>
                       <tr
-                        className={`hover:bg-[#0f1721] transition-colors group ${
-                          isSelected ? 'bg-[#151c24]' : isExpanded ? 'bg-[#0e1620]' : ''
+                        className={`hover:bg-secondary/40 transition-colors group ${
+                          isSelected ? 'bg-secondary/60' : isExpanded ? 'bg-secondary/30' : ''
                         }`}
                       >
                         {/* Checkbox & Expand Chevron */}
-                        <td className="py-3 px-3">
+                        <td className="py-3.5 px-3">
                           <div className="flex items-center gap-1.5">
                             <input
                               type="checkbox"
                               checked={isSelected}
                               onChange={() => toggleSelectTrade(trade.id)}
-                              className="w-4 h-4 rounded border-[#1b2837] bg-[#070b0f] text-[#00f098] accent-[#00f098] cursor-pointer"
+                              className="w-4 h-4 rounded border-border bg-secondary/50 text-profit accent-profit cursor-pointer"
                             />
                             <button
                               onClick={() => toggleRow(trade.id)}
-                              className="text-[#64748b] hover:text-[#00f098] transition p-1 cursor-pointer"
+                              className="text-muted-foreground hover:text-profit transition p-1 cursor-pointer"
                             >
                               {isExpanded ? (
-                                <ChevronDown className="w-4 h-4 text-[#00f098]" />
+                                <ChevronDown className="w-4 h-4 text-profit" />
                               ) : (
                                 <ChevronRight className="w-4 h-4" />
                               )}
@@ -371,16 +371,16 @@ export const TradesView = () => {
                         </td>
 
                         {/* Pair + Direction badge */}
-                        <td className="py-3 px-3">
+                        <td className="py-3.5 px-3">
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-white tracking-wide">
+                            <span className="font-bold text-foreground tracking-wide font-num">
                               {trade.pair}
                             </span>
                             <span
-                              className={`text-[9px] font-bold px-1.5 py-0.5 rounded tracking-wider uppercase ${
+                              className={`text-[9px] font-bold px-1.5 py-0.5 rounded tracking-wider uppercase font-num ${
                                 isBuy
-                                  ? 'bg-[#00f098]/15 text-[#00f098] border border-[#00f098]/30'
-                                  : 'bg-[#ff4d4d]/15 text-[#ff4d4d] border border-[#ff4d4d]/30'
+                                  ? 'bg-profit/15 text-profit border border-profit/30'
+                                  : 'bg-loss/15 text-loss border border-loss/30'
                               }`}
                             >
                               {trade.direction}
@@ -389,19 +389,19 @@ export const TradesView = () => {
                         </td>
 
                         {/* Session */}
-                        <td className="py-3 px-3 text-[#94a3b8] font-sans">
+                        <td className="py-3.5 px-3 text-muted-foreground">
                           {trade.session}
                         </td>
 
                         {/* Lots */}
-                        <td className="py-3 px-3 text-[#cbd5e1]">
+                        <td className="py-3.5 px-3 text-foreground font-num">
                           {trade.lots}
                         </td>
 
                         {/* Entry -> Exit */}
-                        <td className="py-3 px-3 text-[#94a3b8]">
+                        <td className="py-3.5 px-3 text-muted-foreground font-num">
                           {isOpen ? (
-                            <span className="text-[#cbd5e1] font-semibold">{trade.entryPrice}</span>
+                            <span className="text-foreground font-semibold">{trade.entryPrice}</span>
                           ) : (
                             <span>
                               {trade.entryPrice} → {trade.exitPrice}
@@ -410,15 +410,15 @@ export const TradesView = () => {
                         </td>
 
                         {/* R Multiple */}
-                        <td className="py-3 px-3">
+                        <td className="py-3.5 px-3 font-num">
                           {isOpen ? (
-                            <span className="text-[#64748b]">-</span>
+                            <span className="text-muted-foreground/60">-</span>
                           ) : (
                             <span
                               className={`font-semibold ${
                                 (trade.rMultiple || 0) >= 0
-                                  ? 'text-[#00f098]'
-                                  : 'text-[#ff4d4d]'
+                                  ? 'text-profit'
+                                  : 'text-loss'
                               }`}
                             >
                               {formatR(trade.rMultiple)}
@@ -427,15 +427,15 @@ export const TradesView = () => {
                         </td>
 
                         {/* Pips */}
-                        <td className="py-3 px-3">
+                        <td className="py-3.5 px-3 font-num">
                           {isOpen ? (
-                            <span className="text-[#64748b]">-</span>
+                            <span className="text-muted-foreground/60">-</span>
                           ) : (
                             <span
                               className={`font-semibold ${
                                 (trade.pips || 0) >= 0
-                                  ? 'text-[#00f098]'
-                                  : 'text-[#ff4d4d]'
+                                  ? 'text-profit'
+                                  : 'text-loss'
                               }`}
                             >
                               {formatPips(trade.pips)}
@@ -444,24 +444,24 @@ export const TradesView = () => {
                         </td>
 
                         {/* Date */}
-                        <td className="py-3 px-3 text-[#8092a4]">
+                        <td className="py-3.5 px-3 text-muted-foreground font-num">
                           {formatDateDisplay(trade.date)}
                         </td>
 
                         {/* P&L */}
-                        <td className="py-3 px-3">
+                        <td className="py-3.5 px-3 font-num">
                           {isOpen ? (
-                            <span className="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/30">
+                            <span className="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-full bg-sky-500/15 text-sky-400 border border-sky-500/30">
                               OPEN
                             </span>
                           ) : (
                             <span
                               className={`font-bold ${
                                 isProfit
-                                  ? 'text-[#00f098]'
+                                  ? 'text-profit'
                                   : isLoss
-                                  ? 'text-[#ff4d4d]'
-                                  : 'text-[#8092a4]'
+                                  ? 'text-loss'
+                                  : 'text-muted-foreground'
                               }`}
                             >
                               {formatCurrencyRaw(trade.pnl, currency, true)}
@@ -470,12 +470,12 @@ export const TradesView = () => {
                         </td>
 
                         {/* Actions */}
-                        <td className="py-3 px-4 text-right">
+                        <td className="py-3.5 px-4 text-right">
                           <div className="flex items-center justify-end gap-1.5">
                             {isOpen && (
                               <button
                                 onClick={() => setTradeToClose(trade)}
-                                className="px-2.5 py-1 text-[11px] font-bold rounded bg-[#131f2b] hover:bg-[#00f098]/20 text-[#cbd5e1] hover:text-[#00f098] border border-[#1f2e3e] hover:border-[#00f098]/40 transition mr-1"
+                                className="px-2.5 py-1 text-[11px] font-bold rounded-lg bg-profit/15 hover:bg-profit/25 text-profit border border-profit/35 transition mr-1 cursor-pointer"
                               >
                                 Close
                               </button>
@@ -483,7 +483,7 @@ export const TradesView = () => {
 
                             <button
                               onClick={() => setTradeToEdit(trade)}
-                              className="p-1.5 text-[#64748b] hover:text-white rounded hover:bg-[#15212c] transition"
+                              className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary transition cursor-pointer"
                               title="Edit trade"
                             >
                               <Edit2 className="w-3.5 h-3.5" />
@@ -491,7 +491,7 @@ export const TradesView = () => {
 
                             <button
                               onClick={() => setTradeToDelete(trade)}
-                              className="p-1.5 text-[#64748b] hover:text-[#ff4d4d] rounded hover:bg-[#15212c] transition"
+                              className="p-1.5 text-muted-foreground hover:text-loss rounded-lg hover:bg-secondary transition cursor-pointer"
                               title="Delete trade"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -502,42 +502,42 @@ export const TradesView = () => {
 
                       {/* Expanded Accordion Details */}
                       {isExpanded && (
-                        <tr className="bg-[#080d12]/95 border-b border-[#141e2a]">
+                        <tr className="bg-secondary/25 border-b border-border">
                           <td colSpan="10" className="p-5">
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 font-sans">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                               {/* Left Column: Plan & Details */}
                               <div className="space-y-3">
-                                <div className="text-[11px] font-bold uppercase tracking-wider text-[#64748b]">
+                                <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                                   Execution Details
                                 </div>
-                                <div className="space-y-1.5 text-xs">
-                                  <div className="flex justify-between text-[#8092a4]">
+                                <div className="space-y-1.5 text-xs font-num">
+                                  <div className="flex justify-between text-muted-foreground">
                                     <span>Stop Loss:</span>
-                                    <span className="font-mono text-white font-medium">
+                                    <span className="text-loss font-semibold">
                                       {trade.stopLoss || 'None set'}
                                     </span>
                                   </div>
-                                  <div className="flex justify-between text-[#8092a4]">
+                                  <div className="flex justify-between text-muted-foreground">
                                     <span>Take Profit:</span>
-                                    <span className="font-mono text-white font-medium">
+                                    <span className="text-profit font-semibold">
                                       {trade.takeProfit || 'None set'}
                                     </span>
                                   </div>
-                                  <div className="flex justify-between text-[#8092a4]">
+                                  <div className="flex justify-between text-muted-foreground">
                                     <span>Setup Tag:</span>
-                                    <span className="font-mono px-2 py-0.5 rounded bg-[#131f2b] text-[#00f098] border border-[#1b2b3b]">
+                                    <span className="font-num px-2 py-0.5 rounded-md bg-secondary text-profit border border-profit/30">
                                       {trade.setupTag || 'General'}
                                     </span>
                                   </div>
-                                  <div className="flex justify-between text-[#8092a4]">
+                                  <div className="flex justify-between text-muted-foreground">
                                     <span>Followed Plan:</span>
                                     <span className="flex items-center gap-1 font-semibold">
                                       {trade.followedPlan ? (
-                                        <span className="text-[#00f098] flex items-center gap-1">
+                                        <span className="text-profit flex items-center gap-1">
                                           <CheckCircle2 className="w-3.5 h-3.5" /> Yes
                                         </span>
                                       ) : (
-                                        <span className="text-[#ff4d4d] flex items-center gap-1">
+                                        <span className="text-loss flex items-center gap-1">
                                           <XCircle className="w-3.5 h-3.5" /> No
                                         </span>
                                       )}
@@ -548,10 +548,10 @@ export const TradesView = () => {
 
                               {/* Middle Column: Trade Notes & Review */}
                               <div className="space-y-2">
-                                <div className="text-[11px] font-bold uppercase tracking-wider text-[#64748b]">
+                                <div className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
                                   Journal Notes & Reflection
                                 </div>
-                                <p className="text-xs text-[#cbd5e1] leading-relaxed bg-[#0b1219] p-3 rounded-lg border border-[#15212d] min-h-[70px]">
+                                <p className="text-xs text-foreground leading-relaxed bg-secondary/40 p-3 rounded-xl border border-border min-h-[70px]">
                                   {trade.notes || 'No reflections logged for this trade.'}
                                 </p>
                               </div>
@@ -559,14 +559,14 @@ export const TradesView = () => {
                               {/* Right Column: Entry & Exit Screenshots */}
                               <div className="space-y-3">
                                 <div>
-                                  <div className="text-[11px] font-bold uppercase tracking-wider text-[#00f098] mb-1.5 flex items-center justify-between">
+                                  <div className="text-[11px] font-bold uppercase tracking-wider text-profit mb-1.5 flex items-center justify-between">
                                     <span>Entry Chart</span>
                                     {trade.screenshot && (
-                                      <span className="text-[10px] text-[#8092a4] font-mono font-normal">Active Setup</span>
+                                      <span className="text-[10px] text-muted-foreground font-num font-normal">Active Setup</span>
                                     )}
                                   </div>
                                   {trade.screenshot ? (
-                                    <div className="relative group rounded-lg overflow-hidden border border-[#1a2837] h-24 bg-[#090e14]">
+                                    <div className="relative group rounded-xl overflow-hidden border border-border h-24 bg-card">
                                       <img
                                         src={trade.screenshot}
                                         alt="Entry trade chart"
@@ -576,13 +576,13 @@ export const TradesView = () => {
                                         href={trade.screenshot}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs gap-1 transition"
+                                        className="absolute inset-0 bg-background/60 backdrop-blur-xs opacity-0 group-hover:opacity-100 flex items-center justify-center text-foreground text-xs gap-1 transition"
                                       >
                                         <ExternalLink className="w-3.5 h-3.5" /> View Full
                                       </a>
                                     </div>
                                   ) : (
-                                    <div className="h-16 rounded-lg border border-dashed border-[#1a2837] bg-[#090e14] flex items-center justify-center text-[#546577] text-xs gap-1.5">
+                                    <div className="h-16 rounded-xl border border-dashed border-border bg-card/40 flex items-center justify-center text-muted-foreground text-xs gap-1.5">
                                       <ImageIcon className="w-4 h-4" />
                                       <span>No entry chart attached</span>
                                     </div>
@@ -590,14 +590,14 @@ export const TradesView = () => {
                                 </div>
 
                                 <div>
-                                  <div className="text-[11px] font-bold uppercase tracking-wider text-[#38bdf8] mb-1.5 flex items-center justify-between">
+                                  <div className="text-[11px] font-bold uppercase tracking-wider text-sky-400 mb-1.5 flex items-center justify-between">
                                     <span>Exit Chart</span>
                                     {trade.exitScreenshot && (
-                                      <span className="text-[10px] text-[#8092a4] font-mono font-normal">Post-Trade</span>
+                                      <span className="text-[10px] text-muted-foreground font-num font-normal">Post-Trade</span>
                                     )}
                                   </div>
                                   {trade.exitScreenshot ? (
-                                    <div className="relative group rounded-lg overflow-hidden border border-[#1a2837] h-24 bg-[#090e14]">
+                                    <div className="relative group rounded-xl overflow-hidden border border-border h-24 bg-card">
                                       <img
                                         src={trade.exitScreenshot}
                                         alt="Exit trade chart"
@@ -607,13 +607,13 @@ export const TradesView = () => {
                                         href={trade.exitScreenshot}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white text-xs gap-1 transition"
+                                        className="absolute inset-0 bg-background/60 backdrop-blur-xs opacity-0 group-hover:opacity-100 flex items-center justify-center text-foreground text-xs gap-1 transition"
                                       >
                                         <ExternalLink className="w-3.5 h-3.5" /> View Full
                                       </a>
                                     </div>
                                   ) : (
-                                    <div className="h-16 rounded-lg border border-dashed border-[#1a2837] bg-[#090e14] flex items-center justify-center text-[#546577] text-xs gap-1.5">
+                                    <div className="h-16 rounded-xl border border-dashed border-border bg-card/40 flex items-center justify-center text-muted-foreground text-xs gap-1.5">
                                       <ImageIcon className="w-4 h-4" />
                                       <span>No exit chart attached</span>
                                     </div>
@@ -633,7 +633,7 @@ export const TradesView = () => {
         </div>
 
         {/* Footer Summary */}
-        <div className="p-4 border-t border-[#141e2a] flex items-center justify-between text-xs font-mono text-[#64748b] bg-[#080d12]">
+        <div className="p-4 border-t border-border flex items-center justify-between text-xs font-num text-muted-foreground bg-secondary/20">
           <div>
             <span>{filteredTrades.length} trades</span>
             <span className="mx-2">·</span>
@@ -641,7 +641,7 @@ export const TradesView = () => {
               net{' '}
               <strong
                 className={`font-bold ${
-                  filteredNetPnl >= 0 ? 'text-[#00f098]' : 'text-[#ff4d4d]'
+                  filteredNetPnl >= 0 ? 'text-profit' : 'text-loss'
                 }`}
               >
                 {formatCurrencyRaw(filteredNetPnl, currency, true)}
@@ -653,16 +653,16 @@ export const TradesView = () => {
 
       {/* Bulk Delete Confirmation Modal */}
       {showBulkDeleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
-          <div className="relative w-full max-w-sm bg-[#090e14] border border-[#2b181b] rounded-2xl shadow-2xl p-6 text-center space-y-4">
-            <div className="w-12 h-12 rounded-full bg-[#ef4444]/10 border border-[#ef4444]/30 text-[#ef4444] flex items-center justify-center mx-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+          <div className="relative w-full max-w-sm bg-card border border-loss/30 rounded-xl shadow-2xl p-6 text-center space-y-4 animate-rise">
+            <div className="w-12 h-12 rounded-full bg-loss/10 border border-loss/30 text-loss flex items-center justify-center mx-auto">
               <Trash2 className="w-6 h-6" />
             </div>
 
             <div>
-              <h3 className="text-white font-bold text-base">Delete {selectedTradeIds.length} Trades?</h3>
-              <p className="text-xs text-[#8092a4] mt-1 leading-relaxed">
-                Are you sure you want to delete <span className="text-white font-bold">{selectedTradeIds.length}</span> selected trade{selectedTradeIds.length > 1 ? 's' : ''}? This action will permanently remove them from your database and local journal.
+              <h3 className="text-foreground font-bold text-base">Delete {selectedTradeIds.length} Trades?</h3>
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                Are you sure you want to delete <span className="text-foreground font-bold">{selectedTradeIds.length}</span> selected trade{selectedTradeIds.length > 1 ? 's' : ''}? This action will permanently remove them from your database and local journal.
               </p>
             </div>
 
@@ -671,7 +671,7 @@ export const TradesView = () => {
                 type="button"
                 onClick={() => setShowBulkDeleteConfirm(false)}
                 disabled={isBulkDeleting}
-                className="px-4 py-2 text-xs font-semibold text-[#8092a4] hover:text-white rounded-xl bg-[#121c27] hover:bg-[#1a2736] transition cursor-pointer disabled:opacity-50"
+                className="px-4 py-2 text-xs font-semibold text-muted-foreground hover:text-foreground rounded-xl bg-secondary/50 hover:bg-secondary transition cursor-pointer disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -690,7 +690,7 @@ export const TradesView = () => {
                   }
                 }}
                 disabled={isBulkDeleting}
-                className="px-5 py-2 text-xs font-bold text-white bg-[#ef4444] hover:bg-[#dc2626] rounded-xl transition shadow-[0_0_12px_rgba(239,68,68,0.3)] cursor-pointer disabled:opacity-50"
+                className="px-5 py-2 text-xs font-bold text-white bg-loss hover:bg-loss/90 rounded-xl transition shadow-[0_0_12px_rgba(239,68,68,0.3)] cursor-pointer disabled:opacity-50"
               >
                 {isBulkDeleting ? 'Deleting...' : `Yes, Delete (${selectedTradeIds.length})`}
               </button>
@@ -701,4 +701,3 @@ export const TradesView = () => {
     </div>
   );
 };
-

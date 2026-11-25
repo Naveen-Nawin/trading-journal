@@ -72,36 +72,36 @@ export const CalendarView = () => {
   return (
     <div className="space-y-6 pb-20">
       {/* Header */}
-      <div>
-        <div className="text-[#64748b] text-[11px] font-bold tracking-widest uppercase mb-1">
-          MONTH AT A GLANCE
+      <div className="animate-rise">
+        <div className="text-muted-foreground text-[11px] font-bold tracking-widest uppercase mb-1">
+          Month at a Glance
         </div>
-        <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
-          Daily P&L Calendar
+        <h1 className="text-2xl md:text-3xl font-extrabold text-foreground tracking-tight">
+          Daily <span className="text-profit glow-green">P&L Calendar</span>
         </h1>
-        <p className="text-[#64748b] text-xs mt-1">
+        <p className="text-muted-foreground text-xs mt-1">
           Green days build your edge, red days teach you something. Tap any day to review its trades.
         </p>
       </div>
 
       {/* Main Calendar Card */}
-      <div className="bg-[#0b1117] border border-[#16222f] rounded-2xl p-6 shadow-xl">
+      <div className="rounded-xl border border-border bg-card/70 backdrop-blur-sm p-6 shadow-xs animate-rise">
         {/* Navigation Bar */}
-        <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#141e2a]">
+        <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
           <button
             onClick={handlePrevMonth}
-            className="p-2 rounded-lg text-[#64748b] hover:text-white hover:bg-[#121c27] transition"
+            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition cursor-pointer"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
 
           <div className="text-center">
-            <h2 className="text-base font-bold text-white tracking-wide">
+            <h2 className="text-base font-bold text-foreground tracking-wide">
               {monthNames[currentMonth]} {currentYear}
             </h2>
             <div
-              className={`text-xs font-mono font-semibold mt-0.5 ${
-                monthTotalPnl >= 0 ? 'text-[#00f098]' : 'text-[#ff4d4d]'
+              className={`text-xs font-num font-semibold mt-0.5 ${
+                monthTotalPnl >= 0 ? 'text-profit' : 'text-loss'
               }`}
             >
               {formatCurrencyRaw(monthTotalPnl, currency, true)} this month
@@ -110,7 +110,7 @@ export const CalendarView = () => {
 
           <button
             onClick={handleNextMonth}
-            className="p-2 rounded-lg text-[#64748b] hover:text-white hover:bg-[#121c27] transition"
+            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition cursor-pointer"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
@@ -121,7 +121,7 @@ export const CalendarView = () => {
           {dayHeaders.map((dh, idx) => (
             <div
               key={idx}
-              className="text-[#546577] text-[11px] font-bold font-mono tracking-wider py-1"
+              className="text-muted-foreground text-[11px] font-bold font-num tracking-wider py-1"
             >
               {dh}
             </div>
@@ -135,7 +135,7 @@ export const CalendarView = () => {
               return (
                 <div
                   key={`empty-${idx}`}
-                  className="min-h-[88px] rounded-xl bg-[#080d12]/40 border border-[#121a24]/40 opacity-30"
+                  className="min-h-[88px] rounded-xl bg-secondary/20 border border-border/30 opacity-30"
                 />
               );
             }
@@ -145,21 +145,21 @@ export const CalendarView = () => {
             const isProfit = hasTrades && dayData.pnl > 0;
             const isLoss = hasTrades && dayData.pnl < 0;
 
-            let cardBg = 'bg-[#080d12]/70 border-[#141e2a] hover:border-[#1e2d3d]';
+            let cardBg = 'bg-card/40 border-border/50 hover:border-border';
             if (isProfit) {
-              cardBg = 'bg-[#0c241c] border-[#00f098]/40 shadow-[0_0_15px_rgba(0,240,152,0.12)] cursor-pointer hover:border-[#00f098]/80';
+              cardBg = 'bg-profit/10 border-profit/35 shadow-[0_0_15px_rgba(18,213,134,0.12)] cursor-pointer hover:border-profit/80';
             } else if (isLoss) {
-              cardBg = 'bg-[#241117] border-[#ff4d4d]/40 shadow-[0_0_15px_rgba(255,77,77,0.12)] cursor-pointer hover:border-[#ff4d4d]/80';
+              cardBg = 'bg-loss/10 border-loss/35 shadow-[0_0_15px_rgba(239,68,68,0.12)] cursor-pointer hover:border-loss/80';
             }
 
             return (
               <div
                 key={dayNum}
                 onClick={() => handleDayClick(dayNum)}
-                className={`min-h-[88px] p-2.5 rounded-xl border flex flex-col justify-between transition-all ${cardBg}`}
+                className={`min-h-[88px] p-2.5 rounded-xl border flex flex-col justify-between transition-all font-num ${cardBg}`}
               >
                 {/* Day number */}
-                <div className="text-[11px] font-mono font-medium text-[#64748b]">
+                <div className="text-[11px] font-num font-medium text-muted-foreground">
                   {dayNum}
                 </div>
 
@@ -167,8 +167,8 @@ export const CalendarView = () => {
                 {hasTrades ? (
                   <div className="my-auto">
                     <div
-                      className={`text-xs md:text-sm font-mono font-bold tracking-tight ${
-                        isProfit ? 'text-[#00f098]' : 'text-[#ff4d4d]'
+                      className={`text-xs md:text-sm font-num font-bold tracking-tight ${
+                        isProfit ? 'text-profit' : 'text-loss'
                       }`}
                     >
                       {formatCurrencyRaw(dayData.pnl, currency, true)}
@@ -181,7 +181,7 @@ export const CalendarView = () => {
                 {/* Trade count badge */}
                 <div className="text-right">
                   {hasTrades && (
-                    <span className="text-[10px] font-mono text-[#8092a4]">
+                    <span className="text-[10px] font-num text-muted-foreground">
                       {dayData.count}t
                     </span>
                   )}
@@ -194,35 +194,35 @@ export const CalendarView = () => {
 
       {/* Bottom 3 Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-[#0b1117] border border-[#16222f] rounded-xl p-5 shadow-sm">
-          <div className="text-[#64748b] text-[11px] font-bold tracking-widest uppercase mb-1">
-            TRADING DAYS
+        <div className="rounded-xl border border-border bg-card/70 backdrop-blur-sm p-5 shadow-xs animate-rise">
+          <div className="text-muted-foreground text-[11px] font-bold tracking-widest uppercase mb-1">
+            Trading Days
           </div>
-          <div className="text-2xl font-mono font-extrabold text-white">
+          <div className="text-2xl font-num font-extrabold text-foreground">
             {activeTradingDays}
           </div>
         </div>
 
-        <div className="bg-[#0b1117] border border-[#16222f] rounded-xl p-5 shadow-sm">
-          <div className="text-[#64748b] text-[11px] font-bold tracking-widest uppercase mb-1">
-            BEST DAY
+        <div className="rounded-xl border border-border bg-card/70 backdrop-blur-sm p-5 shadow-xs animate-rise">
+          <div className="text-muted-foreground text-[11px] font-bold tracking-widest uppercase mb-1">
+            Best Day
           </div>
-          <div className="text-2xl font-mono font-extrabold text-[#00f098]">
+          <div className="text-2xl font-num font-extrabold text-profit">
             {formatCurrencyRaw(bestDayPnl, currency, true)}
           </div>
         </div>
 
-        <div className="bg-[#0b1117] border border-[#16222f] rounded-xl p-5 shadow-sm">
-          <div className="text-[#64748b] text-[11px] font-bold tracking-widest uppercase mb-1">
-            WORST DAY
+        <div className="rounded-xl border border-border bg-card/70 backdrop-blur-sm p-5 shadow-xs animate-rise">
+          <div className="text-muted-foreground text-[11px] font-bold tracking-widest uppercase mb-1">
+            Worst Day
           </div>
           <div
-            className={`text-2xl font-mono font-extrabold ${
+            className={`text-2xl font-num font-extrabold ${
               worstDayPnl < 0
-                ? 'text-[#ff4d4d]'
+                ? 'text-loss'
                 : worstDayPnl > 0
-                ? 'text-[#00f098]'
-                : 'text-[#64748b]'
+                ? 'text-profit'
+                : 'text-muted-foreground'
             }`}
           >
             {formatCurrencyRaw(worstDayPnl, currency, worstDayPnl > 0)}
@@ -232,4 +232,3 @@ export const CalendarView = () => {
     </div>
   );
 };
-

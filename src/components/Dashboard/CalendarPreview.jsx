@@ -43,19 +43,19 @@ export const CalendarPreview = () => {
   };
 
   return (
-    <div className="bg-[#0b1117] border border-[#16222f] rounded-2xl p-6 shadow-xl">
-      <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#141e2a]">
+    <div className="rounded-xl border border-border bg-card/70 backdrop-blur-sm p-5 md:p-6 shadow-xs animate-rise">
+      <div className="flex items-center justify-between mb-4 pb-3 border-b border-border/60">
         <div>
-          <h3 className="text-white text-sm font-bold tracking-wide">
+          <h3 className="text-foreground text-sm font-bold tracking-wide">
             November 2026
           </h3>
-          <span className="text-[#00f098] font-mono text-xs font-semibold">
+          <span className="text-profit font-num text-xs font-semibold">
             {formatCurrencyRaw(monthTotalPnl, currency, true)} this month
           </span>
         </div>
         <button
           onClick={() => setCurrentTab('calendar')}
-          className="flex items-center gap-1 text-xs text-[#00f098] hover:underline font-medium"
+          className="flex items-center gap-1 text-xs text-profit hover:text-profit/80 font-medium transition cursor-pointer"
         >
           View Full Calendar
           <ChevronRight className="w-3.5 h-3.5" />
@@ -65,7 +65,7 @@ export const CalendarPreview = () => {
       {/* Day of week headers */}
       <div className="grid grid-cols-7 gap-2 mb-2 text-center">
         {dayHeaders.map((dh, idx) => (
-          <div key={idx} className="text-[#546577] text-[10px] font-bold font-mono tracking-wider">
+          <div key={idx} className="text-muted-foreground text-[10px] font-bold font-num tracking-wider">
             {dh}
           </div>
         ))}
@@ -78,7 +78,7 @@ export const CalendarPreview = () => {
             return (
               <div
                 key={`empty-${idx}`}
-                className="h-20 rounded-xl bg-[#080d12]/40 border border-[#121a24]/40 opacity-30"
+                className="h-20 rounded-xl bg-secondary/20 border border-border/30 opacity-30"
               />
             );
           }
@@ -88,24 +88,24 @@ export const CalendarPreview = () => {
           const isProfit = hasTrades && dayData.pnl > 0;
           const isLoss = hasTrades && dayData.pnl < 0;
 
-          let cardBg = 'bg-[#080d12]/70 border-[#141e2a]';
+          let cardBg = 'bg-card/40 border-border/50';
           if (isProfit) {
-            cardBg = 'bg-[#0c241c] border-[#00f098]/40 shadow-[0_0_12px_rgba(0,240,152,0.1)] cursor-pointer hover:border-[#00f098]/80';
+            cardBg = 'bg-profit/10 border-profit/35 shadow-[0_0_12px_rgba(18,213,134,0.12)] cursor-pointer hover:border-profit/80';
           } else if (isLoss) {
-            cardBg = 'bg-[#241117] border-[#ff4d4d]/40 shadow-[0_0_12px_rgba(255,77,77,0.1)] cursor-pointer hover:border-[#ff4d4d]/80';
+            cardBg = 'bg-loss/10 border-loss/35 shadow-[0_0_12px_rgba(239,68,68,0.12)] cursor-pointer hover:border-loss/80';
           }
 
           return (
             <div
               key={dayNum}
               onClick={() => handleDayClick(dayNum)}
-              className={`h-20 p-2 rounded-xl border flex flex-col justify-between transition-all ${cardBg}`}
+              className={`h-20 p-2 rounded-xl border flex flex-col justify-between transition-all font-num ${cardBg}`}
             >
-              <div className="text-[10px] font-mono text-[#64748b]">{dayNum}</div>
+              <div className="text-[10px] font-num text-muted-foreground">{dayNum}</div>
               {hasTrades && (
                 <div
-                  className={`text-[11px] font-mono font-bold ${
-                    isProfit ? 'text-[#00f098]' : 'text-[#ff4d4d]'
+                  className={`text-[11px] font-num font-bold ${
+                    isProfit ? 'text-profit' : 'text-loss'
                   }`}
                 >
                   {formatCurrencyRaw(dayData.pnl, currency, true)}
@@ -113,7 +113,7 @@ export const CalendarPreview = () => {
               )}
               <div className="text-right">
                 {hasTrades && (
-                  <span className="text-[9px] font-mono text-[#8092a4]">{dayData.count}t</span>
+                  <span className="text-[9px] font-num text-muted-foreground">{dayData.count}t</span>
                 )}
               </div>
             </div>
@@ -123,4 +123,3 @@ export const CalendarPreview = () => {
     </div>
   );
 };
-

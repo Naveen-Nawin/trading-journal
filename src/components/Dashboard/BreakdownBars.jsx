@@ -7,13 +7,13 @@ export const BreakdownBars = () => {
 
   const renderSection = (title, items) => {
     return (
-      <div className="bg-[#0b1117] border border-[#16222f] rounded-xl p-5 shadow-sm">
-        <h4 className="text-[#64748b] text-[11px] font-bold tracking-widest uppercase mb-4">
+      <div className="rounded-xl border border-border bg-card/70 backdrop-blur-sm p-5 shadow-xs animate-rise">
+        <h4 className="text-xs font-semibold tracking-wider uppercase text-muted-foreground mb-4">
           {title}
         </h4>
         <div className="space-y-4">
           {items.length === 0 ? (
-            <div className="text-xs text-[#546577] py-6 text-center font-mono">
+            <div className="text-xs text-muted-foreground/60 py-6 text-center font-num">
               No trades logged yet
             </div>
           ) : (
@@ -24,17 +24,17 @@ export const BreakdownBars = () => {
               return (
                 <div key={idx} className="space-y-1.5">
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-white font-mono font-medium tracking-wide">
+                    <span className="text-foreground font-num font-medium tracking-wide">
                       {item.name}
                     </span>
-                    <div className="flex items-center gap-1.5 font-mono text-[11px]">
-                      <span className="text-[#8092a4]">{item.count}t</span>
-                      <span className="text-[#4b5563]">·</span>
-                      <span className="text-[#8092a4]">{item.winRate.toFixed(1)}%w</span>
-                      <span className="text-[#4b5563]">·</span>
+                    <div className="flex items-center gap-1.5 font-num text-[11px]">
+                      <span className="text-muted-foreground">{item.count}t</span>
+                      <span className="text-border">·</span>
+                      <span className="text-muted-foreground">{item.winRate.toFixed(1)}%w</span>
+                      <span className="text-border">·</span>
                       <span
                         className={`font-semibold ${
-                          isProfit ? 'text-[#00f098]' : 'text-[#ff4d4d]'
+                          isProfit ? 'text-profit' : 'text-loss'
                         }`}
                       >
                         {formatCurrencyRaw(item.pnl, currency, true)}
@@ -43,12 +43,12 @@ export const BreakdownBars = () => {
                   </div>
 
                   {/* Progress bar */}
-                  <div className="w-full h-1 bg-[#121c27] rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-secondary/80 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all duration-500 ${
                         isProfit
-                          ? 'bg-[#00f098] shadow-[0_0_8px_rgba(0,240,152,0.6)]'
-                          : 'bg-[#ff4d4d] shadow-[0_0_8px_rgba(255,77,77,0.6)]'
+                          ? 'bg-profit shadow-[0_0_8px_rgba(18,213,134,0.4)]'
+                          : 'bg-loss shadow-[0_0_8px_rgba(239,68,68,0.4)]'
                       }`}
                       style={{ width: `${barWidth}%` }}
                     />
@@ -70,4 +70,3 @@ export const BreakdownBars = () => {
     </div>
   );
 };
-

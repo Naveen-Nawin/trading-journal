@@ -74,54 +74,54 @@ export const CloseTradeModal = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
-      <div className="relative w-full max-w-lg bg-[#090e14] border border-[#1b2b3b] rounded-2xl shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
+      <div className="relative w-full max-w-lg bg-card border border-border rounded-xl shadow-2xl overflow-hidden animate-rise">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#141f2b] bg-[#0c131c]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/90">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#00f098]" />
-            <h2 className="text-white font-extrabold text-base tracking-wide">
+            <span className="w-2.5 h-2.5 rounded-full bg-primary" />
+            <h2 className="text-foreground font-bold text-base tracking-wide font-num">
               Close Trade: {tradeToClose.pair}
             </h2>
           </div>
           <button
             onClick={() => setTradeToClose(null)}
-            className="p-1.5 text-[#64748b] hover:text-white rounded-lg hover:bg-[#15212d] transition"
+            className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Trade summary card */}
-        <div className="px-6 py-3 bg-[#0c141f] border-b border-[#141f2b] flex items-center justify-between text-xs font-mono">
+        <div className="px-6 py-3 bg-secondary/30 border-b border-border flex items-center justify-between text-xs font-num">
           <div>
-            <span className="text-[#8092a4]">Direction: </span>
+            <span className="text-muted-foreground">Direction: </span>
             <span
               className={`font-bold ${
-                tradeToClose.direction === 'BUY' ? 'text-[#00f098]' : 'text-[#ff4d4d]'
+                tradeToClose.direction === 'BUY' ? 'text-profit' : 'text-loss'
               }`}
             >
               {tradeToClose.direction}
             </span>
           </div>
           <div>
-            <span className="text-[#8092a4]">Entry: </span>
-            <span className="text-white font-bold">{tradeToClose.entryPrice}</span>
+            <span className="text-muted-foreground">Entry: </span>
+            <span className="text-foreground font-bold">{tradeToClose.entryPrice}</span>
           </div>
           <div>
-            <span className="text-[#8092a4]">Lots: </span>
-            <span className="text-white font-bold">{tradeToClose.lots}</span>
+            <span className="text-muted-foreground">Lots: </span>
+            <span className="text-foreground font-bold">{tradeToClose.lots}</span>
           </div>
           <div>
-            <span className="text-[#8092a4]">Session: </span>
-            <span className="text-white">{tradeToClose.session}</span>
+            <span className="text-muted-foreground">Session: </span>
+            <span className="text-foreground">{tradeToClose.session}</span>
           </div>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[#64748b] text-[11px] font-bold tracking-wider uppercase mb-1">
+              <label className="block text-muted-foreground text-[11px] font-bold tracking-wider uppercase mb-1.5">
                 Exit Price *
               </label>
               <input
@@ -132,12 +132,12 @@ export const CloseTradeModal = () => {
                 onBlur={handleCalc}
                 placeholder="e.g. 1.0890"
                 required
-                className="w-full bg-[#06090d] text-white font-mono text-sm border border-[#16222f] rounded-xl px-3 py-2 focus:border-[#00f098]/60 focus:outline-hidden"
+                className="w-full bg-secondary/40 text-foreground font-num text-sm border border-border rounded-xl px-3 py-2.5 focus:border-primary focus:outline-hidden"
               />
             </div>
 
             <div>
-              <label className="block text-[#64748b] text-[11px] font-bold tracking-wider uppercase mb-1">
+              <label className="block text-muted-foreground text-[11px] font-bold tracking-wider uppercase mb-1.5">
                 Net P&L ({currency === 'INR' ? '₹' : '$'}) *
               </label>
               <input
@@ -147,12 +147,12 @@ export const CloseTradeModal = () => {
                 onChange={(e) => setPnl(e.target.value)}
                 placeholder="e.g. 120 or -50"
                 required
-                className={`w-full bg-[#06090d] font-mono font-bold text-sm border rounded-xl px-3 py-2 focus:outline-hidden ${
-                  parseFloat(pnl) >= 0
-                    ? 'text-[#00f098] border-[#00f098]/40'
-                    : parseFloat(pnl) < 0
-                    ? 'text-[#ff4d4d] border-[#ff4d4d]/40'
-                    : 'text-white border-[#16222f]'
+                className={`w-full bg-secondary/40 font-num font-bold text-sm border rounded-xl px-3 py-2.5 focus:outline-hidden ${
+                  pnl > 0
+                    ? 'text-profit border-profit/40'
+                    : pnl < 0
+                    ? 'text-loss border-loss/40'
+                    : 'text-foreground border-border'
                 }`}
               />
             </div>
@@ -160,7 +160,31 @@ export const CloseTradeModal = () => {
 
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block text-[#64748b] text-[11px] font-bold tracking-wider uppercase mb-1">
+              <label className="block text-muted-foreground text-[11px] font-bold tracking-wider uppercase mb-1.5">
+                Exit Date
+              </label>
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border rounded-xl px-3 py-2.5"
+              />
+            </div>
+            <div>
+              <label className="block text-muted-foreground text-[11px] font-bold tracking-wider uppercase mb-1.5">
+                R-Multiple
+              </label>
+              <input
+                type="number"
+                step="0.01"
+                value={rMultiple}
+                onChange={(e) => setRMultiple(e.target.value)}
+                placeholder="e.g. 2.5"
+                className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border rounded-xl px-3 py-2.5"
+              />
+            </div>
+            <div>
+              <label className="block text-muted-foreground text-[11px] font-bold tracking-wider uppercase mb-1.5">
                 Pips
               </label>
               <input
@@ -169,85 +193,41 @@ export const CloseTradeModal = () => {
                 value={pips}
                 onChange={(e) => setPips(e.target.value)}
                 placeholder="e.g. 45"
-                className="w-full bg-[#06090d] text-white font-mono text-xs border border-[#16222f] rounded-xl px-3 py-2 focus:border-[#00f098]/60 focus:outline-hidden"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[#64748b] text-[11px] font-bold tracking-wider uppercase mb-1">
-                R-Multiple
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={rMultiple}
-                onChange={(e) => setRMultiple(e.target.value)}
-                placeholder="e.g. 1.8"
-                className="w-full bg-[#06090d] text-white font-mono text-xs border border-[#16222f] rounded-xl px-3 py-2 focus:border-[#00f098]/60 focus:outline-hidden"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[#64748b] text-[11px] font-bold tracking-wider uppercase mb-1">
-                Exit Date
-              </label>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
-                className="w-full bg-[#06090d] text-white font-mono text-xs border border-[#16222f] rounded-xl px-3 py-1.5 focus:border-[#00f098]/60 focus:outline-hidden"
+                className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border rounded-xl px-3 py-2.5"
               />
             </div>
           </div>
 
           <div>
-            <label className="flex items-center gap-2 cursor-pointer bg-[#070b0f] p-3 rounded-xl border border-[#141f2b]">
-              <input
-                type="checkbox"
-                checked={followedPlan}
-                onChange={(e) => setFollowedPlan(e.target.checked)}
-                className="rounded accent-[#00f098] cursor-pointer"
-              />
-              <span className="text-xs text-[#cbd5e1]">
-                Did you stick to your trading rules throughout this trade?
-              </span>
-            </label>
-          </div>
-
-          <div>
-            <label className="block text-[#64748b] text-[11px] font-bold tracking-wider uppercase mb-1">
-              Closing Reflections
+            <label className="block text-muted-foreground text-[11px] font-bold tracking-wider uppercase mb-1.5">
+              Exit Notes & Reflection
             </label>
             <textarea
-              rows="2"
+              rows="3"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="What went well? Did you take profit according to plan?"
-              className="w-full bg-[#06090d] text-white text-xs border border-[#16222f] rounded-xl p-3 focus:border-[#00f098]/60 focus:outline-hidden"
+              placeholder="What went well? Did you hold to TP or panic close?"
+              className="w-full bg-secondary/40 text-foreground text-xs border border-border rounded-xl p-3 focus:border-primary focus:outline-hidden"
             />
           </div>
 
           {/* Exit Chart Screenshot Upload */}
           <div className="space-y-1.5">
-            <label className="block text-[#38bdf8] text-[11px] font-bold tracking-wider uppercase mb-1 flex items-center justify-between">
+            <label className="block text-sky-400 text-[11px] font-bold tracking-wider uppercase mb-1 flex items-center justify-between">
               <span>Exit Chart Screenshot</span>
-              <span className="text-[10px] text-[#64748b] font-normal lowercase">optional</span>
+              <span className="text-[10px] text-muted-foreground font-normal lowercase">optional</span>
             </label>
             {exitScreenshot ? (
-              <div className="relative w-fit">
+              <div className="relative w-full h-24 rounded-xl border border-border overflow-hidden bg-secondary/30">
                 <img
                   src={exitScreenshot}
-                  alt="Exit chart preview"
-                  className="h-24 rounded-xl border border-[#1e2c3d] object-cover"
+                  alt="Exit Chart"
+                  className="w-full h-full object-cover"
                 />
                 <button
                   type="button"
-                  onClick={() => {
-                    setExitScreenshot(null);
-                    if (fileRef.current) fileRef.current.value = '';
-                  }}
-                  className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-[#ff4d4d] text-white flex items-center justify-center text-xs shadow-md cursor-pointer hover:bg-[#dc2626]"
+                  onClick={() => setExitScreenshot(null)}
+                  className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-loss text-white flex items-center justify-center text-xs shadow-md cursor-pointer hover:bg-loss/90 transition"
                   title="Remove Screenshot"
                 >
                   ✕
@@ -257,10 +237,10 @@ export const CloseTradeModal = () => {
               <button
                 type="button"
                 onClick={() => fileRef.current?.click()}
-                className="flex items-center justify-center gap-2 text-xs text-[#8092a4] border border-dashed border-[#1e2c3d] hover:border-[#38bdf8]/50 hover:text-white rounded-xl px-4 py-3.5 w-full transition cursor-pointer bg-[#06090d]/60"
+                className="flex items-center justify-center gap-2 text-xs text-muted-foreground border border-dashed border-border hover:border-sky-400/60 hover:text-foreground rounded-xl px-4 py-4 w-full transition cursor-pointer bg-secondary/20"
               >
-                <ImagePlus className="w-4 h-4 text-[#38bdf8]" />
-                <span>Upload Exit Chart Screenshot (PNG/JPG)</span>
+                <ImagePlus className="w-4 h-4 text-sky-400" />
+                <span>Upload Exit Chart</span>
               </button>
             )}
             <input
@@ -272,29 +252,47 @@ export const CloseTradeModal = () => {
                 const file = e.target.files?.[0];
                 if (file) {
                   const reader = new FileReader();
-                  reader.onloadend = () => {
-                    setExitScreenshot(reader.result);
-                  };
+                  reader.onloadend = () => setExitScreenshot(reader.result);
                   reader.readAsDataURL(file);
                 }
               }}
             />
           </div>
 
-          <div className="pt-3 border-t border-[#141f2b] flex items-center justify-end gap-3">
+          {/* Followed Plan Toggle */}
+          <div className="flex items-center justify-between p-3.5 bg-secondary/30 rounded-xl border border-border">
+            <div>
+              <div className="text-xs font-bold text-foreground">Followed Trading Plan?</div>
+              <div className="text-[11px] text-muted-foreground">Honesty protects your discipline</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setFollowedPlan(!followedPlan)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition cursor-pointer ${
+                followedPlan
+                  ? 'bg-profit/15 text-profit border-profit/40'
+                  : 'bg-loss/15 text-loss border-loss/40'
+              }`}
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>{followedPlan ? 'YES' : 'NO'}</span>
+            </button>
+          </div>
+
+          <div className="pt-2 flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={() => setTradeToClose(null)}
-              className="px-4 py-2 text-xs font-semibold text-[#8092a4] hover:text-white rounded-xl transition"
+              className="px-4 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground rounded-xl transition cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex items-center gap-2 px-5 py-2.5 bg-[#00f098] hover:bg-[#00f098]/90 text-[#080d12] font-extrabold text-xs rounded-xl shadow-[0_0_15px_rgba(0,240,152,0.3)] transition"
+              className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
             >
               <CheckCircle2 className="w-4 h-4" />
-              <span>Confirm & Close</span>
+              <span>Confirm Close Trade</span>
             </button>
           </div>
         </form>
@@ -302,4 +300,3 @@ export const CloseTradeModal = () => {
     </div>
   );
 };
-

@@ -9,76 +9,93 @@ import { CalendarPreview } from './CalendarPreview';
 export const DashboardView = () => {
   const { stats, currency } = useTrading();
 
-  const currentDateFormatted = 'WEDNESDAY, 18 NOVEMBER 2026';
+  const currentDateFormatted = new Date().toLocaleDateString("en-GB", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-5 md:space-y-6 pb-24">
       {/* Header */}
-      <div>
-        <div className="text-[#64748b] text-[11px] font-bold tracking-widest uppercase mb-1">
+      <div className="animate-rise">
+        <p className="text-[11px] uppercase tracking-[0.22em] text-muted-foreground mb-1.5 font-sans">
           {currentDateFormatted}
-        </div>
-        <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
-          Trading Performance
+        </p>
+        <h1 className="text-2xl md:text-3xl font-bold font-num tracking-tight text-white">
+          Trading <span className="text-profit glow-green">Performance</span>
         </h1>
       </div>
 
       {/* Top 4 Metric Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
         {/* Net P&L Card */}
-        <div className="bg-[#0b1117] border border-[#16222f] rounded-xl p-5 shadow-sm">
-          <div className="text-[#64748b] text-[11px] font-bold tracking-widest uppercase mb-2">
+        <div
+          className="animate-rise rounded-xl border border-primary/30 p-4 md:p-5 bg-card/70 backdrop-blur-sm transition-colors duration-200 hover:border-muted-foreground/30 shadow-sm"
+          style={{ animationDelay: '0ms' }}
+        >
+          <p className="text-[10px] md:text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
             NET P&L
-          </div>
-          <div
-            className={`text-2xl md:text-3xl font-mono font-extrabold tracking-tight ${
-              stats.netPnl >= 0 ? 'text-[#00f098]' : 'text-[#ff4d4d]'
+          </p>
+          <p
+            className={`font-num font-bold text-xl md:text-2xl mt-2 tracking-tight ${
+              stats.netPnl >= 0 ? 'text-profit glow-green' : 'text-loss'
             }`}
           >
             {formatCurrencyRaw(stats.netPnl, currency, true)}
-          </div>
-          <div className="text-[#64748b] text-xs font-mono mt-2">
+          </p>
+          <p className="text-[11px] text-muted-foreground mt-1.5 font-num">
             {stats.closedCount} closed · {stats.openCount} open
-          </div>
+          </p>
         </div>
 
         {/* Win Rate Card */}
-        <div className="bg-[#0b1117] border border-[#16222f] rounded-xl p-5 shadow-sm">
-          <div className="text-[#64748b] text-[11px] font-bold tracking-widest uppercase mb-2">
+        <div
+          className="animate-rise rounded-xl border border-border p-4 md:p-5 bg-card/70 backdrop-blur-sm transition-colors duration-200 hover:border-muted-foreground/30 shadow-sm"
+          style={{ animationDelay: '60ms' }}
+        >
+          <p className="text-[10px] md:text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
             WIN RATE
-          </div>
-          <div className="text-2xl md:text-3xl font-mono font-extrabold text-white tracking-tight">
+          </p>
+          <p className="font-num font-bold text-xl md:text-2xl mt-2 tracking-tight text-white">
             {stats.winRate.toFixed(1)}%
-          </div>
-          <div className="text-[#64748b] text-xs font-mono mt-2">
+          </p>
+          <p className="text-[11px] text-muted-foreground mt-1.5 font-num">
             avg win {formatCurrencyRaw(stats.avgWin, currency, false)}
-          </div>
+          </p>
         </div>
 
         {/* Profit Factor Card */}
-        <div className="bg-[#0b1117] border border-[#16222f] rounded-xl p-5 shadow-sm">
-          <div className="text-[#64748b] text-[11px] font-bold tracking-widest uppercase mb-2">
+        <div
+          className="animate-rise rounded-xl border border-border p-4 md:p-5 bg-card/70 backdrop-blur-sm transition-colors duration-200 hover:border-muted-foreground/30 shadow-sm"
+          style={{ animationDelay: '120ms' }}
+        >
+          <p className="text-[10px] md:text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
             PROFIT FACTOR
-          </div>
-          <div className="text-2xl md:text-3xl font-mono font-extrabold text-white tracking-tight">
+          </p>
+          <p className="font-num font-bold text-xl md:text-2xl mt-2 tracking-tight text-white">
             {stats.profitFactor.toFixed(2)}
-          </div>
-          <div className="text-[#64748b] text-xs font-mono mt-2">
+          </p>
+          <p className="text-[11px] text-muted-foreground mt-1.5 font-num">
             avg loss {formatCurrencyRaw(stats.avgLoss, currency, false)}
-          </div>
+          </p>
         </div>
 
         {/* Avg R Multiple Card */}
-        <div className="bg-[#0b1117] border border-[#16222f] rounded-xl p-5 shadow-sm">
-          <div className="text-[#64748b] text-[11px] font-bold tracking-widest uppercase mb-2">
+        <div
+          className="animate-rise rounded-xl border border-border p-4 md:p-5 bg-card/70 backdrop-blur-sm transition-colors duration-200 hover:border-muted-foreground/30 shadow-sm"
+          style={{ animationDelay: '180ms' }}
+        >
+          <p className="text-[10px] md:text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
             AVG R MULTIPLE
-          </div>
-          <div className="text-2xl md:text-3xl font-mono font-extrabold text-white tracking-tight">
+          </p>
+          <p className="font-num font-bold text-xl md:text-2xl mt-2 tracking-tight text-white">
             {formatR(stats.avgRMultiple)}
-          </div>
-          <div className="text-[#64748b] text-xs font-mono mt-2">
+          </p>
+          <p className="text-[11px] text-muted-foreground mt-1.5 font-num">
             plan followed {stats.planComplianceRate.toFixed(1)}%
-          </div>
+          </p>
         </div>
       </div>
 

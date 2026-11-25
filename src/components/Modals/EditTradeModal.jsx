@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Save, ImagePlus } from 'lucide-react';
+import { X, Save, ImagePlus, AlertCircle } from 'lucide-react';
 import { useTrading } from '../../context/TradingContext';
 
 export const EditTradeModal = () => {
@@ -62,24 +62,29 @@ export const EditTradeModal = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs overflow-y-auto">
-      <div className="relative w-full max-w-xl bg-[#090e14] border border-[#1b2b3b] rounded-2xl shadow-2xl overflow-hidden my-8">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#141f2b] bg-[#0c131c]">
-          <h2 className="text-white font-extrabold text-base tracking-wide">
-            Edit Trade #{formData.id}
-          </h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm overflow-y-auto">
+      <div className="relative w-full max-w-xl bg-card border border-border rounded-xl shadow-2xl overflow-hidden my-8 animate-rise">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-card/90">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-primary" />
+            <h2 className="text-foreground font-bold text-base tracking-wide font-num">
+              Edit Trade #{formData.id}
+            </h2>
+          </div>
           <button
             onClick={() => setTradeToEdit(null)}
-            className="p-1.5 text-[#64748b] hover:text-white rounded-lg hover:bg-[#15212d] transition"
+            className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
+          {/* Pair & Direction */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[#64748b] text-[11px] font-bold tracking-wider uppercase mb-1">
+              <label className="block text-muted-foreground text-[11px] font-bold tracking-wider uppercase mb-1.5">
                 Pair
               </label>
               <input
@@ -87,17 +92,17 @@ export const EditTradeModal = () => {
                 value={formData.pair}
                 onChange={(e) => handleChange('pair', e.target.value.toUpperCase())}
                 required
-                className="w-full bg-[#06090d] text-white font-mono text-xs border border-[#16222f] rounded-xl px-3 py-2"
+                className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border focus:border-primary focus:ring-1 focus:ring-primary rounded-xl px-3 py-2.5 transition"
               />
             </div>
             <div>
-              <label className="block text-[#64748b] text-[11px] font-bold tracking-wider uppercase mb-1">
+              <label className="block text-muted-foreground text-[11px] font-bold tracking-wider uppercase mb-1.5">
                 Direction
               </label>
               <select
                 value={formData.direction}
                 onChange={(e) => handleChange('direction', e.target.value)}
-                className="w-full bg-[#06090d] text-white text-xs border border-[#16222f] rounded-xl px-3 py-2"
+                className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border focus:border-primary focus:ring-1 focus:ring-primary rounded-xl px-3 py-2.5 transition"
               >
                 <option value="BUY">BUY</option>
                 <option value="SELL">SELL</option>
@@ -105,20 +110,21 @@ export const EditTradeModal = () => {
             </div>
           </div>
 
+          {/* Session, Lots, Date */}
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <label className="block text-[#64748b] text-[11px] font-bold tracking-wider uppercase mb-1">
+              <label className="block text-muted-foreground text-[11px] font-bold tracking-wider uppercase mb-1.5">
                 Session
               </label>
               <input
                 type="text"
                 value={formData.session}
                 onChange={(e) => handleChange('session', e.target.value)}
-                className="w-full bg-[#06090d] text-white text-xs border border-[#16222f] rounded-xl px-3 py-2"
+                className="w-full bg-secondary/40 text-foreground text-xs border border-border focus:border-primary focus:ring-1 focus:ring-primary rounded-xl px-3 py-2.5 transition"
               />
             </div>
             <div>
-              <label className="block text-[#64748b] text-[11px] font-bold tracking-wider uppercase mb-1">
+              <label className="block text-muted-foreground text-[11px] font-bold tracking-wider uppercase mb-1.5">
                 Lots
               </label>
               <input
@@ -126,25 +132,26 @@ export const EditTradeModal = () => {
                 step="0.01"
                 value={formData.lots}
                 onChange={(e) => handleChange('lots', e.target.value)}
-                className="w-full bg-[#06090d] text-white font-mono text-xs border border-[#16222f] rounded-xl px-3 py-2"
+                className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border focus:border-primary focus:ring-1 focus:ring-primary rounded-xl px-3 py-2.5 transition"
               />
             </div>
             <div>
-              <label className="block text-[#64748b] text-[11px] font-bold tracking-wider uppercase mb-1">
+              <label className="block text-muted-foreground text-[11px] font-bold tracking-wider uppercase mb-1.5">
                 Date
               </label>
               <input
                 type="date"
                 value={formData.date}
                 onChange={(e) => handleChange('date', e.target.value)}
-                className="w-full bg-[#06090d] text-white font-mono text-xs border border-[#16222f] rounded-xl px-3 py-2"
+                className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border focus:border-primary focus:ring-1 focus:ring-primary rounded-xl px-3 py-2.5 transition"
               />
             </div>
           </div>
 
+          {/* Entry Price & Exit Price */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[#64748b] text-[11px] font-bold tracking-wider uppercase mb-1">
+              <label className="block text-muted-foreground text-[11px] font-bold tracking-wider uppercase mb-1.5">
                 Entry Price
               </label>
               <input
@@ -152,11 +159,11 @@ export const EditTradeModal = () => {
                 step="any"
                 value={formData.entryPrice ?? ''}
                 onChange={(e) => handleChange('entryPrice', e.target.value)}
-                className="w-full bg-[#06090d] text-white font-mono text-xs border border-[#16222f] rounded-xl px-3 py-2"
+                className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border focus:border-primary focus:ring-1 focus:ring-primary rounded-xl px-3 py-2.5 transition"
               />
             </div>
             <div>
-              <label className="block text-[#64748b] text-[11px] font-bold tracking-wider uppercase mb-1">
+              <label className="block text-muted-foreground text-[11px] font-bold tracking-wider uppercase mb-1.5">
                 Exit Price
               </label>
               <input
@@ -164,16 +171,17 @@ export const EditTradeModal = () => {
                 step="any"
                 value={formData.exitPrice ?? ''}
                 onChange={(e) => handleChange('exitPrice', e.target.value)}
-                className="w-full bg-[#06090d] text-white font-mono text-xs border border-[#16222f] rounded-xl px-3 py-2"
+                className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border focus:border-primary focus:ring-1 focus:ring-primary rounded-xl px-3 py-2.5 transition"
               />
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          {/* Stop Loss & Take Profit (Crucial Feature) */}
+          <div className="grid grid-cols-2 gap-3 p-3.5 rounded-xl border border-border/80 bg-secondary/20">
             <div>
-              <label className="block text-[#ef4444] text-[11px] font-bold tracking-wider uppercase mb-1 flex items-center justify-between">
+              <label className="block text-loss text-[11px] font-bold tracking-wider uppercase mb-1.5 flex items-center justify-between">
                 <span>Stop Loss (SL)</span>
-                <span className="text-[10px] text-[#64748b] font-normal lowercase">optional</span>
+                <span className="text-[10px] text-muted-foreground font-normal lowercase">editable</span>
               </label>
               <input
                 type="number"
@@ -181,13 +189,13 @@ export const EditTradeModal = () => {
                 placeholder="e.g. 2730.00"
                 value={formData.stopLoss ?? ''}
                 onChange={(e) => handleChange('stopLoss', e.target.value)}
-                className="w-full bg-[#06090d] text-white font-mono text-xs border border-[#16222f] focus:border-[#ef4444]/60 rounded-xl px-3 py-2"
+                className="w-full bg-secondary/50 text-foreground font-num text-xs border border-loss/40 focus:border-loss focus:ring-1 focus:ring-loss rounded-xl px-3 py-2.5 transition"
               />
             </div>
             <div>
-              <label className="block text-[#00f098] text-[11px] font-bold tracking-wider uppercase mb-1 flex items-center justify-between">
+              <label className="block text-profit text-[11px] font-bold tracking-wider uppercase mb-1.5 flex items-center justify-between">
                 <span>Take Profit (TP / Target)</span>
-                <span className="text-[10px] text-[#64748b] font-normal lowercase">optional</span>
+                <span className="text-[10px] text-muted-foreground font-normal lowercase">editable</span>
               </label>
               <input
                 type="number"
@@ -195,7 +203,7 @@ export const EditTradeModal = () => {
                 placeholder="e.g. 2760.00"
                 value={formData.takeProfit ?? ''}
                 onChange={(e) => handleChange('takeProfit', e.target.value)}
-                className="w-full bg-[#06090d] text-white font-mono text-xs border border-[#16222f] focus:border-[#00f098]/60 rounded-xl px-3 py-2"
+                className="w-full bg-secondary/50 text-foreground font-num text-xs border border-profit/40 focus:border-profit focus:ring-1 focus:ring-profit rounded-xl px-3 py-2.5 transition"
               />
             </div>
           </div>
@@ -203,7 +211,7 @@ export const EditTradeModal = () => {
           {formData.status === 'CLOSED' && (
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="block text-[#64748b] text-[11px] font-bold tracking-wider uppercase mb-1">
+                <label className="block text-muted-foreground text-[11px] font-bold tracking-wider uppercase mb-1.5">
                   P&L ({currency === 'INR' ? '₹' : '$'})
                 </label>
                 <input
@@ -211,11 +219,11 @@ export const EditTradeModal = () => {
                   step="any"
                   value={formData.pnl ?? ''}
                   onChange={(e) => handleChange('pnl', e.target.value)}
-                  className="w-full bg-[#06090d] text-white font-mono text-xs border border-[#16222f] rounded-xl px-3 py-2"
+                  className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border focus:border-primary focus:ring-1 focus:ring-primary rounded-xl px-3 py-2.5 transition"
                 />
               </div>
               <div>
-                <label className="block text-[#64748b] text-[11px] font-bold tracking-wider uppercase mb-1">
+                <label className="block text-muted-foreground text-[11px] font-bold tracking-wider uppercase mb-1.5">
                   R-Multiple
                 </label>
                 <input
@@ -223,11 +231,11 @@ export const EditTradeModal = () => {
                   step="0.01"
                   value={formData.rMultiple ?? ''}
                   onChange={(e) => handleChange('rMultiple', e.target.value)}
-                  className="w-full bg-[#06090d] text-white font-mono text-xs border border-[#16222f] rounded-xl px-3 py-2"
+                  className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border focus:border-primary focus:ring-1 focus:ring-primary rounded-xl px-3 py-2.5 transition"
                 />
               </div>
               <div>
-                <label className="block text-[#64748b] text-[11px] font-bold tracking-wider uppercase mb-1">
+                <label className="block text-muted-foreground text-[11px] font-bold tracking-wider uppercase mb-1.5">
                   Pips
                 </label>
                 <input
@@ -235,33 +243,35 @@ export const EditTradeModal = () => {
                   step="0.1"
                   value={formData.pips ?? ''}
                   onChange={(e) => handleChange('pips', e.target.value)}
-                  className="w-full bg-[#06090d] text-white font-mono text-xs border border-[#16222f] rounded-xl px-3 py-2"
+                  className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border focus:border-primary focus:ring-1 focus:ring-primary rounded-xl px-3 py-2.5 transition"
                 />
               </div>
             </div>
           )}
 
+          {/* Notes */}
           <div>
-            <label className="block text-[#64748b] text-[11px] font-bold tracking-wider uppercase mb-1">
+            <label className="block text-muted-foreground text-[11px] font-bold tracking-wider uppercase mb-1.5">
               Notes
             </label>
             <textarea
               rows="3"
               value={formData.notes || ''}
               onChange={(e) => handleChange('notes', e.target.value)}
-              className="w-full bg-[#06090d] text-white text-xs border border-[#16222f] rounded-xl p-3"
+              className="w-full bg-secondary/40 text-foreground text-xs border border-border focus:border-primary focus:ring-1 focus:ring-primary rounded-xl p-3 transition"
             />
           </div>
 
+          {/* Screenshots: Entry & Exit */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Entry Screenshot */}
             <div className="space-y-1.5">
-              <label className="block text-[#00f098] text-[11px] font-bold tracking-wider uppercase mb-1 flex items-center justify-between">
-                <span>Entry Chart Screenshot</span>
-                <span className="text-[10px] text-[#64748b] font-normal lowercase">optional</span>
+              <label className="block text-profit text-[11px] font-bold tracking-wider uppercase mb-1 flex items-center justify-between">
+                <span>Entry Chart</span>
+                <span className="text-[10px] text-muted-foreground font-normal lowercase">optional</span>
               </label>
               {formData.screenshot ? (
-                <div className="relative w-full h-24 rounded-xl border border-[#16222f] overflow-hidden bg-[#06090d]">
+                <div className="relative w-full h-24 rounded-xl border border-border overflow-hidden bg-secondary/30">
                   <img
                     src={formData.screenshot}
                     alt="Entry Chart"
@@ -270,7 +280,7 @@ export const EditTradeModal = () => {
                   <button
                     type="button"
                     onClick={() => handleChange('screenshot', '')}
-                    className="absolute top-1 right-1 w-6 h-6 rounded-full bg-[#ff4d4d] text-white flex items-center justify-center text-xs shadow-md cursor-pointer hover:bg-[#dc2626]"
+                    className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-loss text-white flex items-center justify-center text-xs shadow-md cursor-pointer hover:bg-loss/90 transition"
                     title="Remove Entry Chart"
                   >
                     ✕
@@ -280,9 +290,9 @@ export const EditTradeModal = () => {
                 <button
                   type="button"
                   onClick={() => entryFileRef.current?.click()}
-                  className="flex items-center justify-center gap-2 text-xs text-[#8092a4] border border-dashed border-[#1e2c3d] hover:border-[#00f098]/50 hover:text-white rounded-xl px-4 py-4 w-full transition cursor-pointer bg-[#06090d]/60"
+                  className="flex items-center justify-center gap-2 text-xs text-muted-foreground border border-dashed border-border hover:border-profit/60 hover:text-foreground rounded-xl px-4 py-4 w-full transition cursor-pointer bg-secondary/20"
                 >
-                  <ImagePlus className="w-4 h-4 text-[#00f098]" />
+                  <ImagePlus className="w-4 h-4 text-profit" />
                   <span>Upload Entry Chart</span>
                 </button>
               )}
@@ -304,12 +314,12 @@ export const EditTradeModal = () => {
 
             {/* Exit Screenshot */}
             <div className="space-y-1.5">
-              <label className="block text-[#38bdf8] text-[11px] font-bold tracking-wider uppercase mb-1 flex items-center justify-between">
-                <span>Exit Chart Screenshot</span>
-                <span className="text-[10px] text-[#64748b] font-normal lowercase">optional</span>
+              <label className="block text-sky-400 text-[11px] font-bold tracking-wider uppercase mb-1 flex items-center justify-between">
+                <span>Exit Chart</span>
+                <span className="text-[10px] text-muted-foreground font-normal lowercase">optional</span>
               </label>
               {formData.exitScreenshot ? (
-                <div className="relative w-full h-24 rounded-xl border border-[#16222f] overflow-hidden bg-[#06090d]">
+                <div className="relative w-full h-24 rounded-xl border border-border overflow-hidden bg-secondary/30">
                   <img
                     src={formData.exitScreenshot}
                     alt="Exit Chart"
@@ -318,7 +328,7 @@ export const EditTradeModal = () => {
                   <button
                     type="button"
                     onClick={() => handleChange('exitScreenshot', '')}
-                    className="absolute top-1 right-1 w-6 h-6 rounded-full bg-[#ff4d4d] text-white flex items-center justify-center text-xs shadow-md cursor-pointer hover:bg-[#dc2626]"
+                    className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-loss text-white flex items-center justify-center text-xs shadow-md cursor-pointer hover:bg-loss/90 transition"
                     title="Remove Exit Chart"
                   >
                     ✕
@@ -328,9 +338,9 @@ export const EditTradeModal = () => {
                 <button
                   type="button"
                   onClick={() => exitFileRef.current?.click()}
-                  className="flex items-center justify-center gap-2 text-xs text-[#8092a4] border border-dashed border-[#1e2c3d] hover:border-[#38bdf8]/50 hover:text-white rounded-xl px-4 py-4 w-full transition cursor-pointer bg-[#06090d]/60"
+                  className="flex items-center justify-center gap-2 text-xs text-muted-foreground border border-dashed border-border hover:border-sky-400/60 hover:text-foreground rounded-xl px-4 py-4 w-full transition cursor-pointer bg-secondary/20"
                 >
-                  <ImagePlus className="w-4 h-4 text-[#38bdf8]" />
+                  <ImagePlus className="w-4 h-4 text-sky-400" />
                   <span>Upload Exit Chart</span>
                 </button>
               )}
@@ -351,17 +361,18 @@ export const EditTradeModal = () => {
             </div>
           </div>
 
-          <div className="pt-3 border-t border-[#141f2b] flex items-center justify-end gap-3">
+          {/* Action buttons */}
+          <div className="pt-3 border-t border-border flex items-center justify-end gap-3">
             <button
               type="button"
               onClick={() => setTradeToEdit(null)}
-              className="px-4 py-2 text-xs font-semibold text-[#8092a4] hover:text-white"
+              className="px-4 py-2.5 text-xs font-semibold text-muted-foreground hover:text-foreground rounded-xl transition cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex items-center gap-2 px-5 py-2.5 bg-[#00f098] hover:bg-[#00f098]/90 text-[#080d12] font-extrabold text-xs rounded-xl transition"
+              className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
             >
               <Save className="w-4 h-4" />
               <span>Save Changes</span>
@@ -372,4 +383,3 @@ export const EditTradeModal = () => {
     </div>
   );
 };
-

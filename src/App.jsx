@@ -24,12 +24,15 @@ export function AppContent() {
   // If verifying session on startup
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#070a0e] bg-grid-pattern text-slate-100 flex flex-col items-center justify-center p-4">
-        <div className="w-12 h-12 rounded-2xl bg-[#0e271f] border border-[#00f098]/40 flex items-center justify-center shadow-[0_0_20px_rgba(0,240,152,0.3)] mb-4 animate-pulse">
-          <span className="text-[#00f098] font-black text-xl">▲</span>
+      <div className="min-h-screen bg-[#090e17] terminal-grid text-foreground flex flex-col items-center justify-center p-4">
+        <div className="w-12 h-12 rounded-2xl bg-primary/15 border border-primary/40 flex items-center justify-center shadow-[0_0_20px_rgba(18,213,134,0.3)] mb-4 animate-pulse">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+            <path d="M3 17.5 8 11l4 3.5L21 5" stroke="hsl(160 84% 45%)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M15.5 5H21v5.5" stroke="hsl(160 84% 45%)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+          </svg>
         </div>
-        <div className="text-white font-extrabold tracking-wider text-base mb-1">PIPDESK</div>
-        <div className="text-xs text-[#00f098] font-mono animate-pulse">Connecting to secure database...</div>
+        <div className="text-white font-num font-bold text-base mb-1 tracking-tight">PIPDESK</div>
+        <div className="text-xs text-profit font-num animate-pulse">Connecting to secure database...</div>
       </div>
     );
   }
@@ -37,25 +40,28 @@ export function AppContent() {
   // Gate: When opening the website without being logged in, pop up the login page directly!
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#070a0e] bg-grid-pattern text-slate-100 flex flex-col items-center justify-center p-4 relative selection:bg-[#00f098]/30 selection:text-[#00f098]">
+      <div className="min-h-screen bg-[#090e17] terminal-grid text-foreground flex flex-col items-center justify-center p-4 relative selection:bg-primary/25">
         <AuthModal isGate={true} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-grid-pattern text-slate-100 flex flex-col lg:flex-row relative selection:bg-[#00f098]/30 selection:text-[#00f098]">
+    <div className="min-h-screen bg-[#090e17] terminal-grid text-foreground flex flex-col lg:flex-row relative selection:bg-primary/25">
       {/* Mobile Header Bar */}
-      <div className="lg:hidden flex items-center justify-between p-4 bg-[#080d12]/95 border-b border-[#15202b] sticky top-0 z-30 backdrop-blur-md">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-md bg-[#0e271f] border border-[#00f098]/40 flex items-center justify-center">
-            <span className="text-[#00f098] font-bold text-xs">▲</span>
+      <div className="lg:hidden flex items-center justify-between p-4 bg-card/90 border-b border-border sticky top-0 z-30 backdrop-blur-xl">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-primary/15 border border-primary/40 flex items-center justify-center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M3 17.5 8 11l4 3.5L21 5" stroke="hsl(160 84% 45%)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+              <path d="M15.5 5H21v5.5" stroke="hsl(160 84% 45%)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </div>
-          <span className="font-extrabold tracking-wider text-sm text-white">PIPDESK</span>
+          <span className="font-num font-bold tracking-tight text-sm text-white">PIPDESK</span>
         </div>
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="p-2 text-[#8092a4] hover:text-white rounded-lg bg-[#0d1620] border border-[#1a2837]"
+          className="p-2 text-muted-foreground hover:text-foreground rounded-lg bg-secondary border border-border"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -65,7 +71,7 @@ export function AppContent() {
       <Sidebar mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
 
       {/* Main Content Area */}
-      <main className="flex-1 lg:ml-64 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
+      <main className="flex-1 lg:ml-60 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full">
         {currentTab === 'dashboard' && <DashboardView />}
         {currentTab === 'trades' && <TradesView />}
         {currentTab === 'calendar' && <CalendarView />}
@@ -75,9 +81,9 @@ export function AppContent() {
       {/* Floating Action Button: + Log Trade */}
       <button
         onClick={() => setIsLogTradeOpen(true)}
-        className="fixed bottom-6 right-6 z-40 flex items-center gap-2 px-5 py-3 bg-[#00f098] hover:bg-[#00f098]/90 text-[#080d12] font-black text-xs md:text-sm rounded-xl shadow-[0_0_20px_rgba(0,240,152,0.45)] hover:shadow-[0_0_25px_rgba(0,240,152,0.6)] transform hover:-translate-y-0.5 active:translate-y-0 transition-all cursor-pointer"
+        className="hidden md:flex fixed bottom-7 right-8 z-40 h-12 px-5 shadow-lg shadow-primary/20 font-semibold bg-[#12d586] hover:bg-[#12d586]/90 text-[#071610] rounded-xl items-center gap-2 cursor-pointer transition-all duration-200 hover:-translate-y-0.5"
       >
-        <Plus className="w-4 h-4 stroke-[3]" />
+        <Plus className="w-4 h-4 stroke-[2.5]" />
         <span>Log Trade</span>
       </button>
 
