@@ -188,14 +188,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Terminal grid background */
-.terminal-grid {
-  background-image:
-    linear-gradient(var(--grid-color) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
-  background-size: 32px 32px;
-}
-
 /* Glowing text and borders */
 .glow-green {
   text-shadow: 0 0 18px var(--primary);

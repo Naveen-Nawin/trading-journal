@@ -36,7 +36,7 @@ export function AppContent() {
   // If verifying session on startup
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-background terminal-grid text-foreground flex flex-col items-center justify-center p-4">
+      <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-4">
         <div className="w-12 h-12 rounded-2xl bg-primary/15 border border-primary/40 flex items-center justify-center shadow-[0_0_20px_rgba(18,213,134,0.3)] mb-4 animate-pulse">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
             <path d="M3 17.5 8 11l4 3.5L21 5" stroke="hsl(160 84% 45%)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
@@ -52,14 +52,14 @@ export function AppContent() {
   // Gate: When opening the website without being logged in, pop up the login page directly!
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-background terminal-grid text-foreground flex flex-col items-center justify-center p-4 relative selection:bg-primary/25">
+      <div className="min-h-screen bg-background text-foreground flex flex-col items-center justify-center p-4 relative selection:bg-primary/25">
         <AuthModal isGate={true} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background terminal-grid text-foreground flex flex-col lg:flex-row relative selection:bg-primary/25">
+    <div className="min-h-screen bg-background text-foreground flex flex-col lg:flex-row relative selection:bg-primary/25">
       {/* Mobile Header Bar */}
       <div className="lg:hidden flex items-center justify-between p-3.5 bg-card/90 border-b border-border sticky top-0 z-30 backdrop-blur-xl">
         <div className="flex items-center gap-2">
