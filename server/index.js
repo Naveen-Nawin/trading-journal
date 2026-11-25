@@ -1,14 +1,21 @@
 import express from 'express';
 import cors from 'cors';
 import { randomUUID } from 'crypto';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import db from './db.js';
 import { hashPassword, comparePassword, generateToken, requireAuth } from './auth.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const distPath = path.resolve(__dirname, '../dist');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(cors());
 app.use(express.json({ limit: '15mb' })); // Support base64 chart screenshots
+app.use(express.static(distPath)); // Serve frontend production build
 
 const DEFAULT_RULES = [
   'Risk max 1% of account per trade',
@@ -442,6 +449,14 @@ app.delete('/api/rules/:id', requireAuth, (req, res) => {
     console.error('Delete rule error:', err);
     res.status(500).json({ error: 'Failed to delete rule.' });
   }
+});
+
+// SPA fallback - serve index.html for all client routes except /api
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    return next();
+  }
+  res.sendFile(path.join(distPath, 'index.html'));
 });
 
 app.listen(PORT, '0.0.0.0', () => {
