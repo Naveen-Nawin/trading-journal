@@ -54,8 +54,8 @@ export const LogTradeModal = () => {
 
   const [pair, setPair] = useState('XAUUSD');
   const [direction, setDirection] = useState('buy'); // 'buy' or 'sell'
-  const [lots, setLots] = useState('0.50');
-  const [entryPrice, setEntryPrice] = useState('2740.00');
+  const [lots, setLots] = useState('');
+  const [entryPrice, setEntryPrice] = useState('');
   const [stopLoss, setStopLoss] = useState('');
   const [takeProfit, setTakeProfit] = useState('');
   const [session, setSession] = useState('London');
@@ -79,8 +79,8 @@ export const LogTradeModal = () => {
     if (isLogTradeOpen) {
       setPair('XAUUSD');
       setDirection('buy');
-      setLots('0.50');
-      setEntryPrice('2740.00');
+      setLots('');
+      setEntryPrice('');
       setStopLoss('');
       setTakeProfit('');
       setSession('London');
@@ -144,7 +144,7 @@ export const LogTradeModal = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!pair.trim() || entryPrice === '') return;
+    if (!pair.trim() || entryPrice === '' || lots === '') return;
 
     let pipsNum = null;
     let rNum = null;
@@ -243,9 +243,9 @@ export const LogTradeModal = () => {
               />
               <div className="flex items-center gap-1.5 pt-1">
                 {[
-                  { label: 'GOLD', value: 'XAUUSD', defaultPrice: '2740.00' },
-                  { label: 'BTC', value: 'BTCUSD', defaultPrice: '96500.00' },
-                  { label: 'ETH', value: 'ETHUSD', defaultPrice: '3450.00' },
+                  { label: 'GOLD', value: 'XAUUSD' },
+                  { label: 'BTC', value: 'BTCUSD' },
+                  { label: 'ETH', value: 'ETHUSD' },
                 ].map((item) => {
                   const isSelected = pair === item.value || pair === item.label;
                   return (
@@ -254,7 +254,6 @@ export const LogTradeModal = () => {
                       type="button"
                       onClick={() => {
                         setPair(item.value);
-                        setEntryPrice(item.defaultPrice);
                       }}
                       className={`px-2 py-0.5 text-[10px] font-num font-bold rounded border transition-all cursor-pointer ${
                         isSelected
@@ -311,6 +310,7 @@ export const LogTradeModal = () => {
                 min="0.01"
                 value={lots}
                 onChange={(e) => setLots(e.target.value)}
+                placeholder="e.g. 0.50"
                 required
                 className="w-full bg-secondary/40 text-foreground font-num text-sm border border-border rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:border-primary"
               />
@@ -328,7 +328,7 @@ export const LogTradeModal = () => {
                 step="any"
                 value={entryPrice}
                 onChange={(e) => setEntryPrice(e.target.value)}
-                placeholder="1.0850"
+                placeholder="e.g. 2740.00"
                 required
                 className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border rounded-xl px-3 py-2.5 focus:outline-hidden focus:border-primary"
               />
