@@ -6,6 +6,7 @@ import { calculateStats } from '../utils/calculations';
 import { setLiveExchangeRate, LIVE_USD_TO_INR_RATE } from '../utils/formatters';
 import { useAuth } from './AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { playWarningTone, playHeavyWarningSound } from '../utils/audioAlerts';
 
 const TradingContext = createContext();
 
@@ -299,6 +300,57 @@ export const TradingProvider = ({ children }) => {
   // Derived statistics
   const stats = useMemo(() => calculateStats(trades), [trades]);
 
+  // Discipline & Overtrading Protection: minimum 3 trades warning, 5 trades lock
+  const todayDateStr = useMemo(() => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }, []);
+
+  const todayTrades = useMemo(() => {
+    return trades.filter((t) => {
+      const dateVal = t.date || t.opened_at || (t.closed_at ? t.closed_at.slice(0, 10) : '');
+      return dateVal && dateVal.slice(0, 10) === todayDateStr;
+    });
+  }, [trades, todayDateStr]);
+
+  const todayTradesCount = todayTrades.length;
+  const isDailyLocked = todayTradesCount >= 5;
+  const isDailyWarning = todayTradesCount >= 3 && todayTradesCount < 5;
+
+  const [disciplineAlert, setDisciplineAlert] = useState({
+    isOpen: false,
+    type: 'warning',
+    count: 0,
+    message: '',
+  });
+
+  const dismissDisciplineAlert = () => {
+    setDisciplineAlert((prev) => ({ ...prev, isOpen: false }));
+  };
+
+  const triggerDisciplineAlert = (type, count) => {
+    if (type === 'lock') {
+      playHeavyWarningSound();
+      setDisciplineAlert({
+        isOpen: true,
+        type: 'lock',
+        count: count >= 5 ? count : 5,
+        message: 'Emotions control cheysuko! Trades enduku enter avutunavuu think cheysuko!',
+      });
+    } else {
+      playWarningTone();
+      setDisciplineAlert({
+        isOpen: true,
+        type: 'warning',
+        count: count,
+        message: 'Emotions control cheysuko! Trades enduku enter avutunavuu think cheysuko!',
+      });
+    }
+  };
+
   // Confetti helper
   const triggerWinCelebration = () => {
     try {
@@ -315,12 +367,33 @@ export const TradingProvider = ({ children }) => {
 
   // Actions
   const logTrade = async (newTrade) => {
+    // Check if daily limit reached
+    if (todayTradesCount >= 5) {
+      triggerDisciplineAlert('lock', todayTradesCount);
+      return false;
+    }
+
     const tradeWithId = {
       ...newTrade,
       id: newTrade.id || `tr-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
     };
 
     setTrades((prev) => [tradeWithId, ...prev]);
+
+    // Check trade count for today
+    const tradeDateVal = tradeWithId.date || tradeWithId.opened_at || (tradeWithId.closed_at ? tradeWithId.closed_at.slice(0, 10) : '');
+    const isTodayTrade = !tradeDateVal || tradeDateVal.slice(0, 10) === todayDateStr;
+    const newCount = isTodayTrade ? todayTradesCount + 1 : todayTradesCount;
+
+    if (newCount >= 5) {
+      setTimeout(() => {
+        triggerDisciplineAlert('lock', newCount);
+      }, 350);
+    } else if (newCount >= 3) {
+      setTimeout(() => {
+        triggerDisciplineAlert('warning', newCount);
+      }, 350);
+    }
 
     if (isSupabaseConfigured && user?.id) {
       try {
@@ -751,6 +824,12 @@ export const TradingProvider = ({ children }) => {
         lightbox,
         setLightbox,
         loadSampleTrades,
+        todayTradesCount,
+        isDailyLocked,
+        isDailyWarning,
+        disciplineAlert,
+        triggerDisciplineAlert,
+        dismissDisciplineAlert,
       }}
     >
       {children}

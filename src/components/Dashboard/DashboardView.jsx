@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Plus } from 'lucide-react';
+import { Sparkles, Plus, Lock, AlertTriangle } from 'lucide-react';
 import { useTrading } from '../../context/TradingContext';
 import { formatCurrencyRaw, formatR } from '../../utils/formatters';
 import { EquityCurveChart } from './EquityCurveChart';
@@ -8,7 +8,17 @@ import { BreakdownBars } from './BreakdownBars';
 import { CalendarPreview } from './CalendarPreview';
 
 export const DashboardView = () => {
-  const { trades, stats, currency, setIsLogTradeOpen, loadSampleTrades } = useTrading();
+  const {
+    trades,
+    stats,
+    currency,
+    setIsLogTradeOpen,
+    loadSampleTrades,
+    todayTradesCount,
+    isDailyLocked,
+    isDailyWarning,
+    triggerDisciplineAlert,
+  } = useTrading();
 
   const currentDateFormatted = new Date().toLocaleDateString("en-GB", {
     weekday: "long",
@@ -71,6 +81,54 @@ export const DashboardView = () => {
           Trading <span className="text-profit glow-green">Performance</span>
         </h1>
       </div>
+
+      {/* Daily Discipline & Lock Banner */}
+      {isDailyLocked ? (
+        <div
+          onClick={() => triggerDisciplineAlert('lock', todayTradesCount)}
+          className="animate-rise rounded-xl border border-loss/60 bg-loss/15 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 cursor-pointer shadow-[0_0_25px_rgba(239,68,68,0.25)] hover:border-loss transition"
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-lg bg-loss/20 text-loss border border-loss/40 shrink-0">
+              <Lock className="w-5 h-5 animate-pulse" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-loss tracking-wide flex items-center gap-2">
+                <span>DAILY LIMIT REACHED (5/5 TRADES)</span>
+                <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-loss/30 text-white font-bold">LOCKED</span>
+              </p>
+              <p className="text-sm font-bold text-red-100 mt-0.5">
+                “Emotions control cheysuko! Trades enduku enter avutunavuu think cheysuko!”
+              </p>
+            </div>
+          </div>
+          <span className="text-xs font-semibold text-loss hover:underline shrink-0">
+            View Lockout Notice →
+          </span>
+        </div>
+      ) : isDailyWarning ? (
+        <div
+          onClick={() => triggerDisciplineAlert('warning', todayTradesCount)}
+          className="animate-rise rounded-xl border border-amber-500/60 bg-amber-500/10 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 cursor-pointer shadow-[0_0_20px_rgba(245,158,11,0.2)] hover:border-amber-400 transition"
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-lg bg-amber-500/20 text-amber-400 border border-amber-500/40 shrink-0">
+              <AlertTriangle className="w-5 h-5 animate-bounce" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-amber-400 tracking-wide flex items-center gap-2">
+                <span>DAILY DISCIPLINE WARNING ({todayTradesCount}/5 TRADES TODAY)</span>
+              </p>
+              <p className="text-sm font-bold text-amber-100 mt-0.5">
+                “Emotions control cheysuko! Trades enduku enter avutunavuu think cheysuko!”
+              </p>
+            </div>
+          </div>
+          <span className="text-xs font-semibold text-amber-400 hover:underline shrink-0">
+            Check Emotions →
+          </span>
+        </div>
+      ) : null}
 
       {/* Top 4 Metric Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">

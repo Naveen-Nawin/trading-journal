@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { X, ImagePlus, Camera, Sparkles } from 'lucide-react';
+import { X, ImagePlus, Camera, Sparkles, Lock, AlertTriangle, ShieldAlert } from 'lucide-react';
 import { useTrading } from '../../context/TradingContext';
 
 const SESSIONS = [
@@ -50,6 +50,10 @@ export const LogTradeModal = () => {
     rules,
     currency,
     setIsScanModalOpen,
+    todayTradesCount,
+    isDailyLocked,
+    isDailyWarning,
+    triggerDisciplineAlert,
   } = useTrading();
 
   const [pair, setPair] = useState('XAUUSD');
@@ -77,6 +81,11 @@ export const LogTradeModal = () => {
 
   useEffect(() => {
     if (isLogTradeOpen) {
+      if (isDailyLocked) {
+        triggerDisciplineAlert('lock', todayTradesCount);
+      } else if (isDailyWarning) {
+        triggerDisciplineAlert('warning', todayTradesCount);
+      }
       setPair('XAUUSD');
       setDirection('buy');
       setLots('');
@@ -97,7 +106,7 @@ export const LogTradeModal = () => {
       setExitPreview(null);
       setFollowedPlan(false);
     }
-  }, [isLogTradeOpen]);
+  }, [isLogTradeOpen, isDailyLocked, isDailyWarning]);
 
   if (!isLogTradeOpen) return null;
 
@@ -143,6 +152,11 @@ export const LogTradeModal = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (isDailyLocked) {
+      triggerDisciplineAlert('lock', todayTradesCount);
+      return;
+    }
 
     if (!pair.trim() || entryPrice === '' || lots === '') return;
 
@@ -201,19 +215,21 @@ export const LogTradeModal = () => {
         <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-border bg-card/90">
           <div className="flex items-center gap-3">
             <h2 className="text-foreground font-bold text-lg tracking-tight font-num">
-              Log a Trade
+              {isDailyLocked ? '🔒 Log Trade Locked' : 'Log a Trade'}
             </h2>
-            <button
-              type="button"
-              onClick={() => {
-                setIsLogTradeOpen(false);
-                setIsScanModalOpen(true);
-              }}
-              className="flex items-center gap-1.5 px-2.5 py-1 bg-profit/15 hover:bg-profit/25 text-profit border border-profit/40 hover:border-profit/70 rounded-lg text-[11px] font-bold font-num transition shadow-xs cursor-pointer"
-            >
-              <Camera className="w-3 h-3" />
-              <span>Scan MT4/MT5 Screenshot</span>
-            </button>
+            {!isDailyLocked && (
+              <button
+                type="button"
+                onClick={() => {
+                  setIsLogTradeOpen(false);
+                  setIsScanModalOpen(true);
+                }}
+                className="flex items-center gap-1.5 px-2.5 py-1 bg-profit/15 hover:bg-profit/25 text-profit border border-profit/40 hover:border-profit/70 rounded-lg text-[11px] font-bold font-num transition shadow-xs cursor-pointer"
+              >
+                <Camera className="w-3 h-3" />
+                <span>Scan MT4/MT5 Screenshot</span>
+              </button>
+            )}
           </div>
           <button
             type="button"
@@ -224,8 +240,59 @@ export const LogTradeModal = () => {
           </button>
         </div>
 
-        {/* Modal Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[84vh] overflow-y-auto">
+        {isDailyLocked ? (
+          <div className="p-8 text-center space-y-6 bg-[#12080a]">
+            <div className="w-20 h-20 mx-auto rounded-3xl bg-loss/20 text-loss border border-loss/50 flex items-center justify-center animate-pulse shadow-[0_0_30px_rgba(239,68,68,0.35)]">
+              <Lock className="w-10 h-10 stroke-[2.5]" />
+            </div>
+
+            <div className="space-y-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-loss/20 text-loss border border-loss/40">
+                🔒 Daily Limit Reached (5/5 Trades)
+              </span>
+              <h3 className="text-2xl font-black text-foreground">
+                Log Trade is Strictly Locked
+              </h3>
+            </div>
+
+            <div className="p-4 rounded-xl border border-loss/40 bg-loss/10 text-red-200 space-y-1">
+              <p className="text-base sm:text-lg font-bold tracking-wide">
+                “Emotions control cheysuko! Trades enduku enter avutunavuu think cheysuko!”
+              </p>
+              <p className="text-xs text-muted-foreground font-mono">
+                (Control your emotions! Think carefully: why are you entering trades?)
+              </p>
+            </div>
+
+            <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
+              You have already logged <span className="text-foreground font-bold font-num">{todayTradesCount} trades today</span>. 
+              Whether in profit or loss, new trade logging is locked for the rest of today to protect your capital and psychology. Step away from the charts!
+            </p>
+
+            <button
+              type="button"
+              onClick={() => setIsLogTradeOpen(false)}
+              className="w-full py-3.5 px-4 rounded-xl font-bold text-sm bg-loss hover:bg-loss/90 text-white shadow-lg hover:shadow-[0_0_20px_rgba(239,68,68,0.5)] transition cursor-pointer active:scale-95"
+            >
+              Step Away From Charts (Close)
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[84vh] overflow-y-auto">
+            {isDailyWarning && (
+              <div className="p-3.5 rounded-xl border border-amber-500/60 bg-amber-500/10 text-amber-200 flex items-start gap-3 shadow-[0_0_15px_rgba(245,158,11,0.15)] animate-pulse">
+                <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                <div className="text-xs space-y-1">
+                  <p className="font-bold text-amber-300 text-sm">
+                    ⚠️ Emotions control cheysuko! Trades enduku enter avutunavuu think cheysuko!
+                  </p>
+                  <p className="text-muted-foreground text-[11px] leading-relaxed">
+                    You have already logged <span className="font-bold text-amber-200 font-num">{todayTradesCount} trades today</span> ({todayTradesCount}/5 max limit). 
+                    Whether in profit or loss, stop and evaluate your psychology before taking another trade!
+                  </p>
+                </div>
+              </div>
+            )}
           {/* Row 1: Pair, Direction, Lots */}
           <div className="grid grid-cols-12 gap-3">
             {/* Pair */}
@@ -670,6 +737,7 @@ export const LogTradeModal = () => {
             </button>
           </div>
         </form>
+        )}
       </div>
     </div>
   );

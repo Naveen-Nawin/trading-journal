@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, Plus } from 'lucide-react';
+import { Menu, Plus, Lock, AlertTriangle } from 'lucide-react';
 import { useTrading } from './context/TradingContext';
 import { Sidebar } from './components/Sidebar';
 import { DashboardView } from './components/Dashboard/DashboardView';
@@ -14,11 +14,21 @@ import { DayTradesModal } from './components/Modals/DayTradesModal';
 import { ImportExportModal } from './components/Modals/ImportExportModal';
 import { ScanTradesModal } from './components/Modals/ScanTradesModal';
 import { LightboxModal } from './components/Modals/LightboxModal';
+import { DisciplineAlertModal } from './components/Modals/DisciplineAlertModal';
 import { AuthModal } from './components/Auth/AuthModal';
 import { useAuth } from './context/AuthContext';
 
 export function AppContent() {
-  const { currentTab, setIsLogTradeOpen, currency, setCurrency } = useTrading();
+  const {
+    currentTab,
+    setIsLogTradeOpen,
+    currency,
+    setCurrency,
+    todayTradesCount,
+    isDailyLocked,
+    isDailyWarning,
+    triggerDisciplineAlert,
+  } = useTrading();
   const { isAuthenticated, isLoading } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -62,6 +72,27 @@ export function AppContent() {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Daily Trades Counter Badge */}
+          {todayTradesCount > 0 && (
+            <button
+              onClick={() => {
+                if (isDailyLocked) triggerDisciplineAlert('lock', todayTradesCount);
+                else if (isDailyWarning) triggerDisciplineAlert('warning', todayTradesCount);
+              }}
+              className={`px-2 py-1 rounded-lg text-[11px] font-num font-bold flex items-center gap-1 cursor-pointer transition ${
+                isDailyLocked
+                  ? 'bg-loss/20 text-loss border border-loss/40'
+                  : isDailyWarning
+                  ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40 animate-pulse'
+                  : 'bg-secondary/60 text-muted-foreground border border-border'
+              }`}
+              title="Daily Trades Counter (Max 5)"
+            >
+              {isDailyLocked ? <Lock className="w-3 h-3" /> : isDailyWarning ? <AlertTriangle className="w-3 h-3" /> : null}
+              <span>{todayTradesCount}/5</span>
+            </button>
+          )}
+
           {/* Quick Currency Toggle */}
           <button
             onClick={() => setCurrency(currency === 'USD' ? 'INR' : 'USD')}
@@ -73,11 +104,21 @@ export function AppContent() {
 
           {/* Quick Log Button */}
           <button
-            onClick={() => setIsLogTradeOpen(true)}
-            className="flex items-center gap-1 px-3 py-1.5 bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
+            onClick={() => {
+              if (isDailyLocked) {
+                triggerDisciplineAlert('lock', todayTradesCount);
+              } else {
+                setIsLogTradeOpen(true);
+              }
+            }}
+            className={`flex items-center gap-1 px-3 py-1.5 font-bold text-xs rounded-xl shadow-xs transition cursor-pointer ${
+              isDailyLocked
+                ? 'bg-loss hover:bg-loss/90 text-white shadow-[0_0_12px_rgba(239,68,68,0.35)]'
+                : 'bg-primary hover:bg-primary/90 text-primary-foreground'
+            }`}
           >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Log</span>
+            {isDailyLocked ? <Lock className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+            <span>{isDailyLocked ? 'Locked' : 'Log'}</span>
           </button>
 
           <button
@@ -102,11 +143,32 @@ export function AppContent() {
 
       {/* Floating Action Button: + Log Trade */}
       <button
-        onClick={() => setIsLogTradeOpen(true)}
-        className="hidden md:flex fixed bottom-7 right-8 z-40 h-12 px-5 shadow-lg font-bold bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl items-center gap-2 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_20px_rgba(18,213,134,0.4)] active:translate-y-0 active:scale-95"
+        onClick={() => {
+          if (isDailyLocked) {
+            triggerDisciplineAlert('lock', todayTradesCount);
+          } else {
+            setIsLogTradeOpen(true);
+          }
+        }}
+        className={`hidden md:flex fixed bottom-7 right-8 z-40 h-12 px-5 shadow-lg font-bold rounded-xl items-center gap-2 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 active:scale-95 ${
+          isDailyLocked
+            ? 'bg-loss hover:bg-loss/90 text-white hover:shadow-[0_0_25px_rgba(239,68,68,0.5)] animate-pulse'
+            : isDailyWarning
+            ? 'bg-primary hover:bg-primary/90 text-primary-foreground hover:shadow-[0_0_20px_rgba(18,213,134,0.4)]'
+            : 'bg-primary hover:bg-primary/90 text-primary-foreground hover:shadow-[0_0_20px_rgba(18,213,134,0.4)]'
+        }`}
       >
-        <Plus className="w-4 h-4 stroke-[2.5]" />
-        <span>Log Trade</span>
+        {isDailyLocked ? (
+          <>
+            <Lock className="w-4 h-4 stroke-[2.5]" />
+            <span>Daily Limit Reached (5/5 Locked)</span>
+          </>
+        ) : (
+          <>
+            <Plus className="w-4 h-4 stroke-[2.5]" />
+            <span>Log Trade {todayTradesCount > 0 ? `(${todayTradesCount}/5)` : ''}</span>
+          </>
+        )}
       </button>
 
       {/* Modals */}
@@ -118,6 +180,7 @@ export function AppContent() {
       <ImportExportModal />
       <ScanTradesModal />
       <LightboxModal />
+      <DisciplineAlertModal />
       <AuthModal />
     </div>
   );
