@@ -25,19 +25,37 @@ export const EditTradeModal = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    const lots = parseFloat(formData.lots) || 0.1;
+    const entryPrice = parseFloat(formData.entryPrice) || 0;
+    const exitPrice = formData.status === 'CLOSED' && formData.exitPrice ? parseFloat(formData.exitPrice) : null;
+    const stopLoss = formData.stopLoss !== '' && formData.stopLoss != null ? parseFloat(formData.stopLoss) : null;
+    const takeProfit = formData.takeProfit !== '' && formData.takeProfit != null ? parseFloat(formData.takeProfit) : null;
+
+    let rMultiple = formData.status === 'CLOSED' ? (formData.rMultiple !== '' && formData.rMultiple != null ? parseFloat(formData.rMultiple) : null) : null;
+    let pips = formData.status === 'CLOSED' ? (formData.pips !== '' && formData.pips != null ? parseFloat(formData.pips) : null) : null;
+
+    // Auto-calculate R-Multiple if stopLoss, entry, and exit are available and R was not manually specified
+    if (formData.status === 'CLOSED' && exitPrice != null && stopLoss != null && Math.abs(entryPrice - stopLoss) > 0) {
+      if (rMultiple === null || rMultiple === 0) {
+        const diff = formData.direction === 'BUY' ? exitPrice - entryPrice : entryPrice - exitPrice;
+        rMultiple = parseFloat((diff / Math.abs(entryPrice - stopLoss)).toFixed(2));
+      }
+    }
+
     const prepared = {
       ...formData,
-      lots: parseFloat(formData.lots) || 0.1,
-      entryPrice: parseFloat(formData.entryPrice) || 0,
-      exitPrice: formData.status === 'CLOSED' && formData.exitPrice ? parseFloat(formData.exitPrice) : null,
-      stopLoss: formData.stopLoss ? parseFloat(formData.stopLoss) : null,
-      takeProfit: formData.takeProfit ? parseFloat(formData.takeProfit) : null,
-      pnl: formData.status === 'CLOSED' ? (formData.pnl !== '' ? parseFloat(formData.pnl) : 0) : null,
-      rMultiple: formData.status === 'CLOSED' ? (formData.rMultiple !== '' ? parseFloat(formData.rMultiple) : null) : null,
-      pips: formData.status === 'CLOSED' ? (formData.pips !== '' ? parseFloat(formData.pips) : null) : null,
+      lots,
+      entryPrice,
+      exitPrice,
+      stopLoss,
+      takeProfit,
+      pnl: formData.status === 'CLOSED' ? (formData.pnl !== '' && formData.pnl != null ? parseFloat(formData.pnl) : 0) : null,
+      rMultiple,
+      pips,
     };
 
     updateTrade(tradeToEdit.id, prepared);
+    setTradeToEdit(null);
   };
 
   return (
@@ -144,6 +162,37 @@ export const EditTradeModal = () => {
                 value={formData.exitPrice ?? ''}
                 onChange={(e) => handleChange('exitPrice', e.target.value)}
                 className="w-full bg-[#06090d] text-white font-mono text-xs border border-[#16222f] rounded-xl px-3 py-2"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[#ef4444] text-[11px] font-bold tracking-wider uppercase mb-1 flex items-center justify-between">
+                <span>Stop Loss (SL)</span>
+                <span className="text-[10px] text-[#64748b] font-normal lowercase">optional</span>
+              </label>
+              <input
+                type="number"
+                step="any"
+                placeholder="e.g. 2730.00"
+                value={formData.stopLoss ?? ''}
+                onChange={(e) => handleChange('stopLoss', e.target.value)}
+                className="w-full bg-[#06090d] text-white font-mono text-xs border border-[#16222f] focus:border-[#ef4444]/60 rounded-xl px-3 py-2"
+              />
+            </div>
+            <div>
+              <label className="block text-[#00f098] text-[11px] font-bold tracking-wider uppercase mb-1 flex items-center justify-between">
+                <span>Take Profit (TP / Target)</span>
+                <span className="text-[10px] text-[#64748b] font-normal lowercase">optional</span>
+              </label>
+              <input
+                type="number"
+                step="any"
+                placeholder="e.g. 2760.00"
+                value={formData.takeProfit ?? ''}
+                onChange={(e) => handleChange('takeProfit', e.target.value)}
+                className="w-full bg-[#06090d] text-white font-mono text-xs border border-[#16222f] focus:border-[#00f098]/60 rounded-xl px-3 py-2"
               />
             </div>
           </div>
