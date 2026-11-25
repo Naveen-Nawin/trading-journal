@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   Trash2,
   Plus,
-  Sparkles,
   RefreshCw,
   AlertCircle,
   FileImage,
@@ -15,9 +14,6 @@ import {
 import { useTrading } from '../../context/TradingContext';
 import {
   parseOcrTextToTrades,
-  SAMPLE_MT5_SCREENSHOT_TRADES,
-  NOV_19_MT5_SCREENSHOT_TRADES,
-  NOV_18_MT5_SCREENSHOT_TRADES,
   calculatePips,
   calculateTheoreticalPnl,
   runBrowserOcr,
@@ -86,59 +82,18 @@ export const ScanTradesModal = () => {
         setScanStatus(`Successfully captured ${parsed.length} trades!`);
       } else {
         setErrorMsg(
-          'OCR scanned the image, but could not detect MT4/MT5 position lines clearly. You can load sample trades or adjust manually below.'
+          'OCR scanned the image, but could not detect MT4/MT5 position lines clearly. Please make sure the screenshot is clear or adjust manually below.'
         );
       }
     } catch (err) {
       console.error('OCR Error:', err);
       setErrorMsg(
-        'OCR encountered a browser restriction or network timeout for traineddata. You can click "Load Attached MT5 Screenshot" to load the trades immediately.'
+        'OCR encountered an error reading the image. Please make sure the screenshot image is clear and try again.'
       );
     } finally {
       setIsScanning(false);
     }
   };
-
-  // Load Nov 19 MT5 Screenshot data (Today's 7 XAUUSD trades)
-  const handleLoadNov19 = () => {
-    setErrorMsg('');
-    setIsScanning(true);
-    setScanStatus('Loading Nov 19 MT5 Positions (7 XAUUSD trades, -$5.40)...');
-    setImageName('mt5_history_2026-11-19.jpg');
-
-    setTimeout(() => {
-      setExtractedTrades(
-        NOV_19_MT5_SCREENSHOT_TRADES.map((t) => ({ ...t, selected: true }))
-      );
-      setIsScanning(false);
-      setScanStatus('Loaded 7 XAUUSD trades from Nov 19 MT5 Screenshot!');
-    }, 300);
-  };
-
-  // Direct insert Nov 19 trades straight into user's trades journal
-  const handleDirectInsertNov19 = () => {
-    logMultipleTrades(NOV_19_MT5_SCREENSHOT_TRADES);
-    setIsScanModalOpen(false);
-  };
-
-  // Load Nov 18 MT5 Screenshot data (14 mixed trades)
-  const handleLoadNov18 = () => {
-    setErrorMsg('');
-    setIsScanning(true);
-    setScanStatus('Loading Nov 18 screenshot positions (14 trades, +$144.15)...');
-    setImageName('mt5_history_2026-11-18.jpg');
-
-    setTimeout(() => {
-      setExtractedTrades(
-        NOV_18_MT5_SCREENSHOT_TRADES.map((t) => ({ ...t, selected: true }))
-      );
-      setIsScanning(false);
-      setScanStatus('Loaded 14 trades from Nov 18 MT5 Screenshot!');
-    }, 300);
-  };
-
-  // Default handler
-  const handleLoadSample = handleLoadNov19;
 
   // Table row editing
   const handleToggleSelect = (index) => {
@@ -254,7 +209,7 @@ export const ScanTradesModal = () => {
         {/* Modal Body */}
         <div className="p-5 sm:p-6 space-y-5 overflow-y-auto flex-1">
           {/* Upload or Drop Area */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+          <div className="w-full">
             <div
               onClick={() => fileInputRef.current?.click()}
               onDragOver={(e) => e.preventDefault()}
@@ -264,7 +219,7 @@ export const ScanTradesModal = () => {
                   processImageFile(e.dataTransfer.files[0]);
                 }
               }}
-              className="md:col-span-8 border-2 border-dashed border-[#1e2d3d] hover:border-[#00f098]/60 bg-[#080d12]/70 hover:bg-[#0c1520] rounded-xl p-5 flex flex-col items-center justify-center text-center cursor-pointer transition-all group"
+              className="w-full border-2 border-dashed border-[#1e2d3d] hover:border-[#00f098]/60 bg-[#080d12]/70 hover:bg-[#0c1520] rounded-xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-all group"
             >
               <div className="w-12 h-12 rounded-full bg-[#121c27] group-hover:bg-[#00f098]/15 border border-[#1e2d3d] flex items-center justify-center text-[#8092a4] group-hover:text-[#00f098] transition mb-3">
                 <UploadCloud className="w-6 h-6" />
@@ -293,47 +248,6 @@ export const ScanTradesModal = () => {
                   }
                 }}
               />
-            </div>
-
-            {/* Quick Sample Action / Help */}
-            <div className="md:col-span-4 bg-[#080d12] border border-[#1a2636] rounded-xl p-4 flex flex-col justify-between space-y-3">
-              <div>
-                <div className="flex items-center gap-1.5 text-xs font-bold text-[#00f098] mb-1">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>Instant Test Available</span>
-                </div>
-                <p className="text-[11px] text-[#8092a4] leading-relaxed">
-                  Test with your latest MT5 mobile screenshots with 1 click:
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <button
-                  type="button"
-                  onClick={handleLoadNov19}
-                  className="w-full py-2.5 px-3 bg-[#0e271f] hover:bg-[#13372b] text-[#00f098] border border-[#00f098]/50 hover:border-[#00f098] rounded-xl text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-[0_0_12px_rgba(0,240,152,0.15)]"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>⚡ Load Nov 19 Screenshot (7 Gold Trades)</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleDirectInsertNov19}
-                  className="w-full py-2 px-3 bg-[#00f098] hover:bg-[#00f098]/90 text-[#080d12] font-black rounded-xl text-xs transition flex items-center justify-center gap-1.5 cursor-pointer shadow-[0_0_15px_rgba(0,240,152,0.25)]"
-                >
-                  <ArrowRight className="w-3.5 h-3.5" />
-                  <span>📥 Insert Directly into Trades Journal</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleLoadNov18}
-                  className="w-full py-1.5 px-3 bg-[#0d1620] hover:bg-[#131f2d] text-[#8092a4] hover:text-white border border-[#1b2837] rounded-xl text-[11px] font-semibold transition flex items-center justify-center gap-1.5 cursor-pointer"
-                >
-                  <span>Load Nov 18 Screenshot (14 Trades)</span>
-                </button>
-              </div>
             </div>
           </div>
 

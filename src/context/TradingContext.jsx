@@ -423,6 +423,27 @@ export const TradingProvider = ({ children }) => {
     setTradeToDelete(null);
   };
 
+  const deleteMultipleTrades = async (tradeIds) => {
+    if (!Array.isArray(tradeIds) || tradeIds.length === 0) return;
+    const idSet = new Set(tradeIds);
+    setTrades((prev) => prev.filter((trade) => !idSet.has(trade.id)));
+
+    if (isSupabaseConfigured && user?.id) {
+      try {
+        await supabase.from('trades').delete().in('id', tradeIds).eq('user_id', user.id);
+      } catch (err) {
+        console.warn('Supabase bulk delete failed:', err);
+      }
+    } else if (token) {
+      for (const id of tradeIds) {
+        fetch(`/api/trades/${id}`, {
+          method: 'DELETE',
+          headers: { Authorization: `Bearer ${token}` },
+        }).catch(() => {});
+      }
+    }
+  };
+
   const clearAllTrades = async () => {
     setTrades([]);
     if (user?.id) {
@@ -618,6 +639,7 @@ export const TradingProvider = ({ children }) => {
         closeTrade,
         updateTrade,
         deleteTrade,
+        deleteMultipleTrades,
         clearAllTrades,
         toggleRule,
         addRule,

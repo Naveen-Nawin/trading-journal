@@ -15,7 +15,6 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { useTrading } from '../../context/TradingContext';
-import { NOV_19_MT5_SCREENSHOT_TRADES } from '../../utils/ocrScanner';
 import {
   formatCurrencyRaw,
   formatR,
@@ -30,11 +29,17 @@ export const TradesView = () => {
     setTradeToClose,
     setTradeToEdit,
     setTradeToDelete,
+    deleteMultipleTrades,
     exportCSV,
     setIsImportExportOpen,
     setIsScanModalOpen,
     logMultipleTrades,
   } = useTrading();
+
+  // Selection & Bulk Actions State
+  const [selectedTradeIds, setSelectedTradeIds] = useState([]);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
+  const [showBulkDeleteConfirm, setShowBulkDeleteConfirm] = useState(false);
 
   // Filter States
   const [statusFilter, setStatusFilter] = useState('ALL'); // 'ALL' | 'OPEN' | 'CLOSED'
@@ -99,6 +104,27 @@ export const TradesView = () => {
       .filter((t) => t.status === 'CLOSED' && typeof t.pnl === 'number')
       .reduce((sum, t) => sum + t.pnl, 0);
   }, [filteredTrades]);
+
+  // Bulk Selection Handlers
+  const allFilteredSelected =
+    filteredTrades.length > 0 &&
+    filteredTrades.every((t) => selectedTradeIds.includes(t.id));
+
+  const toggleSelectAll = () => {
+    if (allFilteredSelected) {
+      const filteredIdSet = new Set(filteredTrades.map((t) => t.id));
+      setSelectedTradeIds((prev) => prev.filter((id) => !filteredIdSet.has(id)));
+    } else {
+      const combined = new Set([...selectedTradeIds, ...filteredTrades.map((t) => t.id)]);
+      setSelectedTradeIds(Array.from(combined));
+    }
+  };
+
+  const toggleSelectTrade = (id) => {
+    setSelectedTradeIds((prev) =>
+      prev.includes(id) ? prev.filter((itemId) => itemId !== id) : [...prev, id]
+    );
+  };
 
   return (
     <div className="space-y-6 pb-24">
@@ -227,6 +253,39 @@ export const TradesView = () => {
             </button>
           )}
         </div>
+
+        {/* Bulk Action Controls */}
+        {selectedTradeIds.length > 0 ? (
+          <div className="flex items-center gap-2 bg-[#ef4444]/15 border border-[#ef4444]/40 px-3 py-1.5 rounded-lg shadow-[0_0_15px_rgba(239,68,68,0.15)]">
+            <span className="text-xs font-mono font-bold text-[#ef4444]">
+              {selectedTradeIds.length} Selected
+            </span>
+            <button
+              type="button"
+              onClick={() => setShowBulkDeleteConfirm(true)}
+              disabled={isBulkDeleting}
+              className="flex items-center gap-1.5 px-3 py-1 bg-[#ef4444] hover:bg-[#dc2626] text-white rounded-md text-xs font-bold transition cursor-pointer shadow-[0_0_10px_rgba(239,68,68,0.3)] disabled:opacity-50"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>{isBulkDeleting ? 'Deleting...' : `Delete Selected (${selectedTradeIds.length})`}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedTradeIds([])}
+              className="text-xs text-[#8092a4] hover:text-white underline cursor-pointer ml-1"
+            >
+              Deselect
+            </button>
+          </div>
+        ) : filteredTrades.length > 0 ? (
+          <button
+            type="button"
+            onClick={toggleSelectAll}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-[#0b1117] hover:bg-[#121c27] text-[#8092a4] hover:text-[#00f098] border border-[#1b2837] hover:border-[#00f098]/30 rounded-lg text-xs font-semibold transition cursor-pointer"
+          >
+            <span>Select All ({filteredTrades.length})</span>
+          </button>
+        ) : null}
       </div>
 
       {/* Trades Table */}
@@ -235,7 +294,18 @@ export const TradesView = () => {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="border-b border-[#141e2a] text-[#546577] text-[11px] font-mono font-bold tracking-wider">
-                <th className="py-3.5 px-4 w-10"></th>
+                <th className="py-3.5 px-3 w-16">
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      type="checkbox"
+                      checked={allFilteredSelected}
+                      onChange={toggleSelectAll}
+                      disabled={filteredTrades.length === 0}
+                      className="w-4 h-4 rounded border-[#1b2837] bg-[#070b0f] text-[#00f098] accent-[#00f098] cursor-pointer"
+                      title={allFilteredSelected ? 'Deselect All' : 'Select All'}
+                    />
+                  </div>
+                </th>
                 <th className="py-3.5 px-3">PAIR</th>
                 <th className="py-3.5 px-3">SESSION</th>
                 <th className="py-3.5 px-3">LOTS</th>
@@ -257,16 +327,8 @@ export const TradesView = () => {
                       </div>
                       <div className="text-white font-medium text-sm">No trades logged yet</div>
                       <p className="text-xs text-[#64748b] max-w-sm">
-                        Your trade journal is clean and ready. Click the green &ldquo;+ Log Trade&rdquo; button, or load your screenshot trades below:
+                        Your trade journal is clean and ready. Click the green &ldquo;+ Log Trade&rdquo; button above to record your first trade.
                       </p>
-                      <button
-                        type="button"
-                        onClick={() => logMultipleTrades(NOV_19_MT5_SCREENSHOT_TRADES)}
-                        className="mt-3 flex items-center gap-1.5 px-3.5 py-2 bg-[#0e271f] hover:bg-[#13372b] text-[#00f098] border border-[#00f098]/50 hover:border-[#00f098] rounded-xl text-xs font-bold transition shadow-[0_0_15px_rgba(0,240,152,0.18)] cursor-pointer"
-                      >
-                        <Sparkles className="w-3.5 h-3.5" />
-                        <span>Insert Today's Nov 19 MT5 Trades (7 Gold Trades)</span>
-                      </button>
                     </div>
                   </td>
                 </tr>
@@ -277,26 +339,35 @@ export const TradesView = () => {
                   const isBuy = trade.direction === 'BUY';
                   const isProfit = !isOpen && trade.pnl > 0;
                   const isLoss = !isOpen && trade.pnl < 0;
+                  const isSelected = selectedTradeIds.includes(trade.id);
 
                   return (
                     <React.Fragment key={trade.id}>
                       <tr
                         className={`hover:bg-[#0f1721] transition-colors group ${
-                          isExpanded ? 'bg-[#0e1620]' : ''
+                          isSelected ? 'bg-[#151c24]' : isExpanded ? 'bg-[#0e1620]' : ''
                         }`}
                       >
-                        {/* Expand Chevron */}
-                        <td className="py-3 px-4">
-                          <button
-                            onClick={() => toggleRow(trade.id)}
-                            className="text-[#64748b] hover:text-[#00f098] transition p-1"
-                          >
-                            {isExpanded ? (
-                              <ChevronDown className="w-4 h-4 text-[#00f098]" />
-                            ) : (
-                              <ChevronRight className="w-4 h-4" />
-                            )}
-                          </button>
+                        {/* Checkbox & Expand Chevron */}
+                        <td className="py-3 px-3">
+                          <div className="flex items-center gap-1.5">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => toggleSelectTrade(trade.id)}
+                              className="w-4 h-4 rounded border-[#1b2837] bg-[#070b0f] text-[#00f098] accent-[#00f098] cursor-pointer"
+                            />
+                            <button
+                              onClick={() => toggleRow(trade.id)}
+                              className="text-[#64748b] hover:text-[#00f098] transition p-1 cursor-pointer"
+                            >
+                              {isExpanded ? (
+                                <ChevronDown className="w-4 h-4 text-[#00f098]" />
+                              ) : (
+                                <ChevronRight className="w-4 h-4" />
+                              )}
+                            </button>
+                          </div>
                         </td>
 
                         {/* Pair + Direction badge */}
@@ -543,6 +614,54 @@ export const TradesView = () => {
           </div>
         </div>
       </div>
+
+      {/* Bulk Delete Confirmation Modal */}
+      {showBulkDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
+          <div className="relative w-full max-w-sm bg-[#090e14] border border-[#2b181b] rounded-2xl shadow-2xl p-6 text-center space-y-4">
+            <div className="w-12 h-12 rounded-full bg-[#ef4444]/10 border border-[#ef4444]/30 text-[#ef4444] flex items-center justify-center mx-auto">
+              <Trash2 className="w-6 h-6" />
+            </div>
+
+            <div>
+              <h3 className="text-white font-bold text-base">Delete {selectedTradeIds.length} Trades?</h3>
+              <p className="text-xs text-[#8092a4] mt-1 leading-relaxed">
+                Are you sure you want to delete <span className="text-white font-bold">{selectedTradeIds.length}</span> selected trade{selectedTradeIds.length > 1 ? 's' : ''}? This action will permanently remove them from your database and local journal.
+              </p>
+            </div>
+
+            <div className="flex gap-2 justify-center pt-2">
+              <button
+                type="button"
+                onClick={() => setShowBulkDeleteConfirm(false)}
+                disabled={isBulkDeleting}
+                className="px-4 py-2 text-xs font-semibold text-[#8092a4] hover:text-white rounded-xl bg-[#121c27] hover:bg-[#1a2736] transition cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  setIsBulkDeleting(true);
+                  try {
+                    await deleteMultipleTrades(selectedTradeIds);
+                    setSelectedTradeIds([]);
+                    setShowBulkDeleteConfirm(false);
+                  } catch (err) {
+                    console.error('Failed to delete trades:', err);
+                  } finally {
+                    setIsBulkDeleting(false);
+                  }
+                }}
+                disabled={isBulkDeleting}
+                className="px-5 py-2 text-xs font-bold text-white bg-[#ef4444] hover:bg-[#dc2626] rounded-xl transition shadow-[0_0_12px_rgba(239,68,68,0.3)] cursor-pointer disabled:opacity-50"
+              >
+                {isBulkDeleting ? 'Deleting...' : `Yes, Delete (${selectedTradeIds.length})`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
