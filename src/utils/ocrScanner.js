@@ -129,7 +129,7 @@ export const parseOcrTextToTrades = (text) => {
         takeProfit: null,
         pnl: parseFloat(pnl.toFixed(2)),
         pips,
-        rMultiple: pnl > 0 ? 1.5 : -1.0,
+        rMultiple: null,
         date,
         time,
         session,

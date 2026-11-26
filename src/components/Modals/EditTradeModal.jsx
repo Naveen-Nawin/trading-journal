@@ -48,11 +48,13 @@ export const EditTradeModal = () => {
         stopLoss,
         lots
       );
-      if (pips === null || pips === 0) {
+      if (stats.pips !== null) {
         pips = stats.pips;
       }
-      if (rMultiple === null || rMultiple === 0) {
+      if (stats.rMultiple !== null) {
         rMultiple = stats.rMultiple;
+      } else if (!stopLoss && (rMultiple === -1 || rMultiple === 1.5)) {
+        rMultiple = null;
       }
     }
 

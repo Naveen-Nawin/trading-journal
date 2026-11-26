@@ -7,6 +7,7 @@ import { setLiveExchangeRate, LIVE_USD_TO_INR_RATE } from '../utils/formatters';
 import { useAuth } from './AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { playWarningTone, playHeavyWarningSound } from '../utils/audioAlerts';
+import { getEffectiveTradePips, getEffectiveTradeRR } from '../utils/pipsAndRR';
 
 export const AVAILABLE_THEMES = [
   {
@@ -84,9 +85,28 @@ const parseTagsAndExitScreenshot = (raw) => {
   return { tags: [], exitScreenshot: null };
 };
 
+const sanitizeTradeData = (t) => {
+  if (!t) return t;
+  const pips = getEffectiveTradePips(t);
+  const rr = getEffectiveTradeRR(t);
+  return {
+    ...t,
+    pips: pips !== null ? pips : t.pips,
+    rMultiple: rr.ratio !== null ? rr.ratio : (t.stopLoss ? t.rMultiple : null),
+  };
+};
+
+const safeLoadSaved = (raw) => {
+  try {
+    const list = JSON.parse(raw);
+    if (Array.isArray(list)) return list.map(sanitizeTradeData);
+  } catch (e) {}
+  return [];
+};
+
 const dbToTrade = (r) => {
   const parsedMeta = parseTagsAndExitScreenshot(r.tags_json);
-  return {
+  const trade = {
     id: r.id,
     pair: r.pair,
     direction: r.direction,
@@ -110,6 +130,7 @@ const dbToTrade = (r) => {
     exitScreenshot: r.exit_screenshot || parsedMeta.exitScreenshot || r.exitScreenshot || null,
     followedPlan: r.followed_plan !== undefined ? Boolean(r.followed_plan) : Boolean(r.followedPlan),
   };
+  return sanitizeTradeData(trade);
 };
 
 const tradeToDb = (t, userId) => ({
@@ -254,7 +275,7 @@ export const TradingProvider = ({ children }) => {
           } else {
             // Fallback to local storage for this user
             const saved = localStorage.getItem(`pipdesk_trades_${user.id}`);
-            if (saved) setTrades(JSON.parse(saved));
+            if (saved) setTrades(safeLoadSaved(saved));
           }
 
           const { data: rulesData, error: rulesErr } = await supabase
@@ -280,7 +301,7 @@ export const TradingProvider = ({ children }) => {
         } catch (err) {
           console.warn('Supabase fetch failed, fallback to local cache:', err);
           const saved = localStorage.getItem(`pipdesk_trades_${user.id}`);
-          if (saved) setTrades(JSON.parse(saved));
+          if (saved) setTrades(safeLoadSaved(saved));
         }
         return;
       }

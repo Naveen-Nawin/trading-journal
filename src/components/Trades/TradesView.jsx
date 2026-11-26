@@ -24,6 +24,7 @@ import {
   formatTimeDisplay,
 } from '../../utils/formatters';
 import { getSessionConfig } from '../../utils/sessionConfig';
+import { getEffectiveTradePips, getEffectiveTradeRR } from '../../utils/pipsAndRR';
 
 export const TradesView = () => {
   const {
@@ -305,6 +306,8 @@ export const TradesView = () => {
             const isProfit = !isOpen && t.pnl > 0;
             const isLoss = !isOpen && t.pnl < 0;
             const isExpanded = !!expandedRows[t.id];
+            const mEffectivePips = getEffectiveTradePips(t);
+            const mEffectiveRR = getEffectiveTradeRR(t);
 
             return (
               <div
@@ -398,7 +401,9 @@ export const TradesView = () => {
                     </div>
                     <div className="flex justify-between text-muted-foreground">
                       <span>R-Multiple / Pips:</span>
-                      <span>{formatR(t.rMultiple)} · {formatPips(t.pips)} pips</span>
+                      <span>
+                        {mEffectiveRR.formatted} · {mEffectivePips !== null ? `${formatPips(mEffectivePips)} pips` : '-'}
+                      </span>
                     </div>
                     <div className="flex flex-wrap gap-1 pt-1">
                       {(t.tags || []).map((tg) => (
@@ -520,6 +525,8 @@ export const TradesView = () => {
                   const isProfit = !isOpen && trade.pnl > 0;
                   const isLoss = !isOpen && trade.pnl < 0;
                   const isSelected = selectedTradeIds.includes(trade.id);
+                  const effectivePips = getEffectiveTradePips(trade);
+                  const effectiveRR = getEffectiveTradeRR(trade);
 
                   return (
                     <React.Fragment key={trade.id}>
@@ -599,34 +606,41 @@ export const TradesView = () => {
 
                         {/* R Multiple */}
                         <td className="py-3.5 px-3 font-num">
-                          {isOpen ? (
+                          {effectiveRR.ratio === null ? (
                             <span className="text-muted-foreground/60">-</span>
                           ) : (
-                            <span
-                              className={`font-semibold ${
-                                (trade.rMultiple || 0) >= 0
-                                  ? 'text-profit'
-                                  : 'text-loss'
-                              }`}
-                            >
-                              {formatR(trade.rMultiple)}
-                            </span>
+                            <div className="flex flex-col">
+                              <span
+                                className={`font-semibold ${
+                                  effectiveRR.ratio >= 0
+                                    ? 'text-profit'
+                                    : 'text-loss'
+                                }`}
+                              >
+                                {effectiveRR.formatted}
+                              </span>
+                              {effectiveRR.isPlanned && (
+                                <span className="text-[9px] text-sky-400 font-sans tracking-wide">
+                                  planned
+                                </span>
+                              )}
+                            </div>
                           )}
                         </td>
 
                         {/* Pips */}
                         <td className="py-3.5 px-3 font-num">
-                          {isOpen ? (
+                          {effectivePips === null ? (
                             <span className="text-muted-foreground/60">-</span>
                           ) : (
                             <span
                               className={`font-semibold ${
-                                (trade.pips || 0) >= 0
+                                effectivePips >= 0
                                   ? 'text-profit'
                                   : 'text-loss'
                               }`}
                             >
-                              {formatPips(trade.pips)}
+                              {formatPips(effectivePips)}
                             </span>
                           )}
                         </td>

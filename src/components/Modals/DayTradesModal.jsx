@@ -2,6 +2,7 @@ import React from 'react';
 import { X, Calendar, Clock } from 'lucide-react';
 import { useTrading } from '../../context/TradingContext';
 import { formatCurrencyRaw, formatR, formatPips, formatTimeDisplay } from '../../utils/formatters';
+import { getEffectiveTradePips, getEffectiveTradeRR } from '../../utils/pipsAndRR';
 
 export const DayTradesModal = () => {
   const { calendarDayModal, setCalendarDayModal, currency } = useTrading();
@@ -49,6 +50,8 @@ export const DayTradesModal = () => {
           {trades.map((t) => {
             const isBuy = t.direction === 'BUY';
             const tradeProfit = (t.pnl || 0) >= 0;
+            const effectivePips = getEffectiveTradePips(t);
+            const effectiveRR = getEffectiveTradeRR(t);
 
             return (
               <div
@@ -94,9 +97,9 @@ export const DayTradesModal = () => {
                     {t.entryPrice} → {t.exitPrice}
                   </span>
                   <div className="flex items-center gap-2">
-                    <span>{formatPips(t.pips)} pips</span>
+                    <span>{effectivePips !== null ? `${formatPips(effectivePips)} pips` : '-'}</span>
                     <span>·</span>
-                    <span>{formatR(t.rMultiple)}</span>
+                    <span>{effectiveRR.formatted}</span>
                   </div>
                 </div>
 

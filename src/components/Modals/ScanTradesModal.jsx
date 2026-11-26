@@ -143,7 +143,7 @@ export const ScanTradesModal = () => {
       exitPrice: 3785.0,
       pnl: 50.0,
       pips: 50.0,
-      rMultiple: 1.5,
+      rMultiple: null,
       date: today,
       time: '12:00:00',
       session: 'London',

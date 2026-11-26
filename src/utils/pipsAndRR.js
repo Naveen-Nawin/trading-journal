@@ -307,3 +307,86 @@ export const calculateRealizedTradeStats = (pair = '', direction = 'BUY', entryP
     estimatedPnl,
   };
 };
+
+/**
+ * Resolves the accurate, pair-aware effective pips for any trade.
+ * If entryPrice and exitPrice exist, calculates the true pips dynamically using pair multipliers.
+ * Otherwise falls back to stored trade.pips if valid.
+ */
+export const getEffectiveTradePips = (trade) => {
+  if (!trade) return null;
+  const entry = parseFloat(trade.entryPrice);
+  const exit = parseFloat(trade.exitPrice);
+
+  if (!isNaN(entry) && !isNaN(exit) && entry > 0 && exit > 0) {
+    return calculatePipsBetween(trade.pair, trade.direction, entry, exit);
+  }
+
+  if (trade.pips !== undefined && trade.pips !== null && !isNaN(parseFloat(trade.pips))) {
+    return parseFloat(trade.pips);
+  }
+
+  return null;
+};
+
+/**
+ * Resolves the accurate, effective R (Planned R:R or Realized R-Multiple) for any trade.
+ * - For OPEN trades: calculates Planned R:R if entry, SL, and TP exist.
+ * - For CLOSED trades: calculates Realized R-Multiple if entry, exit, and SL exist.
+ * - If no SL exists: returns null (displaying '-') because risk was never defined,
+ *   filtering out any old fake/mock values (-1.0 or 1.5).
+ */
+export const getEffectiveTradeRR = (trade) => {
+  if (!trade) return { ratio: null, formatted: '-', isPlanned: false };
+
+  const entry = parseFloat(trade.entryPrice);
+  const exit = parseFloat(trade.exitPrice);
+  const sl = parseFloat(trade.stopLoss);
+  const tp = parseFloat(trade.takeProfit);
+  const isClosed = trade.status === 'CLOSED' || (trade.status !== 'OPEN' && !isNaN(exit) && exit > 0);
+
+  // 1. Closed Trade with Stop Loss -> Exact Realized R-Multiple
+  if (isClosed && !isNaN(entry) && !isNaN(exit) && !isNaN(sl) && entry > 0 && exit > 0 && sl > 0) {
+    const isBuy = (trade.direction || '').toUpperCase() === 'BUY';
+    const riskDistance = isBuy ? entry - sl : sl - entry;
+    const priceDiff = isBuy ? exit - entry : entry - exit;
+
+    if (Math.abs(riskDistance) > 0.000001) {
+      const r = parseFloat((priceDiff / Math.abs(riskDistance)).toFixed(2));
+      return {
+        ratio: r,
+        formatted: `${r >= 0 ? '+' : ''}${r.toFixed(2)}R`,
+        isPlanned: false,
+      };
+    }
+  }
+
+  // 2. Open Trade with SL and TP -> Planned Risk:Reward Ratio
+  if (!isClosed && !isNaN(entry) && entry > 0 && !isNaN(sl) && sl > 0 && !isNaN(tp) && tp > 0) {
+    const planned = calculatePlannedRR(trade.pair, trade.direction, entry, sl, tp);
+    if (planned.isValid && planned.ratio !== null) {
+      return {
+        ratio: planned.ratio,
+        formatted: planned.ratioFormatted,
+        isPlanned: true,
+      };
+    }
+  }
+
+  // 3. User manual rMultiple override (if trade has an explicitly saved valid value,
+  // but exclude dummy placeholder values when no SL is set)
+  if (trade.rMultiple !== undefined && trade.rMultiple !== null && !isNaN(parseFloat(trade.rMultiple))) {
+    const rVal = parseFloat(trade.rMultiple);
+    // If no SL was provided and rVal is exactly -1.0 or 1.5 from old OCR/default mock, return null
+    if ((isNaN(sl) || sl <= 0) && (rVal === -1 || rVal === 1.5)) {
+      return { ratio: null, formatted: '-', isPlanned: false };
+    }
+    return {
+      ratio: rVal,
+      formatted: `${rVal >= 0 ? '+' : ''}${rVal.toFixed(2)}R`,
+      isPlanned: false,
+    };
+  }
+
+  return { ratio: null, formatted: '-', isPlanned: false };
+};
