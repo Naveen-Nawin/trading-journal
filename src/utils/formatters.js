@@ -119,3 +119,70 @@ export const formatTimeDisplay = (timeStr) => {
   }
   return timeStr;
 };
+
+/**
+ * Converts a time string (e.g. "14:30", "06:30:00", "4:10 PM", "11:30 AM") into total seconds from start of day.
+ */
+export const parseTimeToSeconds = (timeStr) => {
+  if (!timeStr) return 0;
+  const trimmed = String(timeStr).trim();
+  const isPM = /pm/i.test(trimmed);
+  const isAM = /am/i.test(trimmed);
+  const clean = trimmed.replace(/\s*(am|pm)/i, '');
+  const parts = clean.split(':').map((p) => parseInt(p, 10) || 0);
+  let hours = parts[0] || 0;
+  const minutes = parts[1] || 0;
+  const seconds = parts[2] || 0;
+
+  if (isPM && hours < 12) hours += 12;
+  if (isAM && hours === 12) hours = 0;
+
+  return hours * 3600 + minutes * 60 + seconds;
+};
+
+/**
+ * Returns a sortable unix timestamp (in milliseconds) for any trade
+ * by accurately combining its execution Date and Time.
+ */
+export const getTradeTimestamp = (trade) => {
+  if (!trade) return 0;
+  const dateStr = trade.date || trade.opened_at || trade.closed_at;
+  let dateMs = 0;
+  if (dateStr) {
+    const cleanDate = String(dateStr).slice(0, 10);
+    const d = new Date(cleanDate);
+    if (!isNaN(d.getTime())) {
+      dateMs = d.getTime();
+    }
+  }
+
+  const timeSecs = parseTimeToSeconds(trade.time || trade.opened_time || trade.exit_time);
+  const totalMs = dateMs + timeSecs * 1000;
+
+  // Tie-breaker precision from ID timestamp if available
+  if (trade.id && typeof trade.id === 'string') {
+    const match = trade.id.match(/(?:tr|ocr)-(\d{10,13})/);
+    if (match) {
+      const idTime = parseInt(match[1], 10);
+      return totalMs > 0 ? totalMs * 1000 + (idTime % 1000) : idTime;
+    }
+  }
+
+  return totalMs;
+};
+
+/**
+ * Compares two trades in chronological descending order:
+ * Newest trades at the top (upside), oldest/least trades at the bottom (below).
+ */
+export const compareTradesDescending = (a, b) => {
+  const timeA = getTradeTimestamp(a);
+  const timeB = getTradeTimestamp(b);
+  if (timeA !== timeB) {
+    return timeB - timeA;
+  }
+  if (a.id && b.id) {
+    return String(b.id).localeCompare(String(a.id));
+  }
+  return 0;
+};

@@ -3,7 +3,7 @@ import confetti from 'canvas-confetti';
 import { initialRules } from '../data/initialRules';
 import { defaultTrades } from '../data/seedData';
 import { calculateStats } from '../utils/calculations';
-import { setLiveExchangeRate, LIVE_USD_TO_INR_RATE } from '../utils/formatters';
+import { setLiveExchangeRate, LIVE_USD_TO_INR_RATE, compareTradesDescending } from '../utils/formatters';
 import { useAuth } from './AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { playWarningTone, playHeavyWarningSound } from '../utils/audioAlerts';
@@ -99,7 +99,7 @@ const sanitizeTradeData = (t) => {
 const safeLoadSaved = (raw) => {
   try {
     const list = JSON.parse(raw);
-    if (Array.isArray(list)) return list.map(sanitizeTradeData);
+    if (Array.isArray(list)) return list.map(sanitizeTradeData).sort(compareTradesDescending);
   } catch (e) {}
   return [];
 };
@@ -231,7 +231,7 @@ export const TradingProvider = ({ children }) => {
       followedPlan: Boolean(t.followed_plan),
     }));
 
-    setTrades(formatted);
+    setTrades(formatted.sort(compareTradesDescending));
     if (user?.id) {
       localStorage.setItem(`pipdesk_trades_${user.id}`, JSON.stringify(formatted));
     }
@@ -271,7 +271,7 @@ export const TradingProvider = ({ children }) => {
                 });
               } catch (e) {}
             }
-            setTrades(mapped);
+            setTrades(mapped.sort(compareTradesDescending));
           } else {
             // Fallback to local storage for this user
             const saved = localStorage.getItem(`pipdesk_trades_${user.id}`);
@@ -314,7 +314,7 @@ export const TradingProvider = ({ children }) => {
           });
           if (res.ok) {
             const data = await res.json();
-            if (data?.trades) setTrades(data.trades);
+            if (data?.trades) setTrades(data.trades.map(sanitizeTradeData).sort(compareTradesDescending));
           }
         } catch (err) {
           console.warn('Could not load trades from API:', err);
@@ -480,7 +480,7 @@ export const TradingProvider = ({ children }) => {
       id: newTrade.id || `tr-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
     };
 
-    setTrades((prev) => [tradeWithId, ...prev]);
+    setTrades((prev) => [tradeWithId, ...prev].sort(compareTradesDescending));
 
     // Check trade count for today
     const tradeDateVal = tradeWithId.date || tradeWithId.opened_at || (tradeWithId.closed_at ? tradeWithId.closed_at.slice(0, 10) : '');
@@ -538,7 +538,7 @@ export const TradingProvider = ({ children }) => {
         : `tr-${Date.now()}-${idx}-${Math.random().toString(36).substr(2, 4)}`,
     }));
 
-    setTrades((prev) => [...formattedTrades, ...prev]);
+    setTrades((prev) => [...formattedTrades, ...prev].sort(compareTradesDescending));
 
     if (isSupabaseConfigured && user?.id) {
       try {
@@ -587,7 +587,7 @@ export const TradingProvider = ({ children }) => {
           return updated;
         }
         return trade;
-      })
+      }).sort(compareTradesDescending)
     );
 
     if (isSupabaseConfigured && user?.id) {
@@ -642,7 +642,7 @@ export const TradingProvider = ({ children }) => {
 
   const updateTrade = async (tradeId, updatedData) => {
     setTrades((prev) =>
-      prev.map((trade) => (trade.id === tradeId ? { ...trade, ...updatedData } : trade))
+      prev.map((trade) => (trade.id === tradeId ? { ...trade, ...updatedData } : trade)).sort(compareTradesDescending)
     );
 
     if (isSupabaseConfigured && user?.id) {

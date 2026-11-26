@@ -22,6 +22,7 @@ import {
   formatPips,
   formatDateDisplay,
   formatTimeDisplay,
+  compareTradesDescending,
 } from '../../utils/formatters';
 import { getSessionConfig } from '../../utils/sessionConfig';
 import { getEffectiveTradePips, getEffectiveTradeRR } from '../../utils/pipsAndRR';
@@ -74,9 +75,9 @@ export const TradesView = () => {
     return Array.from(set).sort();
   }, [trades]);
 
-  // Filtered trades
+  // Filtered trades (sorted strictly in descending order: newest upside, oldest below)
   const filteredTrades = useMemo(() => {
-    return trades.filter((trade) => {
+    const list = trades.filter((trade) => {
       // Status
       if (statusFilter === 'OPEN' && trade.status !== 'OPEN') return false;
       if (statusFilter === 'CLOSED' && trade.status !== 'CLOSED') return false;
@@ -101,6 +102,8 @@ export const TradesView = () => {
 
       return true;
     });
+
+    return [...list].sort(compareTradesDescending);
   }, [trades, statusFilter, pairFilter, sessionFilter, dateFilter, searchQuery]);
 
   // Summary of filtered trades

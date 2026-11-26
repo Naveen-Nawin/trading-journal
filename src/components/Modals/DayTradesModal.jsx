@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, Calendar, Clock } from 'lucide-react';
 import { useTrading } from '../../context/TradingContext';
-import { formatCurrencyRaw, formatR, formatPips, formatTimeDisplay } from '../../utils/formatters';
+import { formatCurrencyRaw, formatR, formatPips, formatTimeDisplay, compareTradesDescending } from '../../utils/formatters';
 import { getEffectiveTradePips, getEffectiveTradeRR } from '../../utils/pipsAndRR';
 
 export const DayTradesModal = () => {
@@ -47,7 +47,7 @@ export const DayTradesModal = () => {
 
         {/* Trade list */}
         <div className="p-6 space-y-3 max-h-96 overflow-y-auto">
-          {trades.map((t) => {
+          {[...trades].sort(compareTradesDescending).map((t) => {
             const isBuy = t.direction === 'BUY';
             const tradeProfit = (t.pnl || 0) >= 0;
             const effectivePips = getEffectiveTradePips(t);
