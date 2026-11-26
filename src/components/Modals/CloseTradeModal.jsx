@@ -66,11 +66,21 @@ export const CloseTradeModal = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    let finalPnl = parseFloat(pnl) || 0;
+    if (pips !== null && pips !== undefined && !isNaN(parseFloat(pips)) && parseFloat(pips) !== 0) {
+      const pipsVal = parseFloat(pips);
+      if (pipsVal < 0 && finalPnl > 0) {
+        finalPnl = -Math.abs(finalPnl);
+      } else if (pipsVal > 0 && finalPnl < 0) {
+        finalPnl = Math.abs(finalPnl);
+      }
+    }
+
     closeTrade(tradeToClose.id, {
       exitPrice: parseFloat(exitPrice) || 0,
-      pnl: parseFloat(pnl) || 0,
-      rMultiple: rMultiple ? parseFloat(rMultiple) : 0,
-      pips: pips ? parseFloat(pips) : 0,
+      pnl: finalPnl,
+      rMultiple: rMultiple ? parseFloat(rMultiple) : null,
+      pips: pips ? parseFloat(pips) : null,
       date,
       time: closeTime,
       notes: notes.trim(),

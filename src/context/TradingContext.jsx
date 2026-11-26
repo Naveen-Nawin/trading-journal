@@ -89,8 +89,20 @@ const sanitizeTradeData = (t) => {
   if (!t) return t;
   const pips = getEffectiveTradePips(t);
   const rr = getEffectiveTradeRR(t);
+  let pnl = t.pnl != null ? parseFloat(t.pnl) : null;
+
+  // Auto-align P&L sign with realized Pips when entry & exit prices define the trade outcome
+  if (pips !== null && pnl !== null && pnl !== 0) {
+    if (pips < 0 && pnl > 0) {
+      pnl = -Math.abs(pnl);
+    } else if (pips > 0 && pnl < 0) {
+      pnl = Math.abs(pnl);
+    }
+  }
+
   return {
     ...t,
+    pnl,
     pips: pips !== null ? pips : t.pips,
     rMultiple: rr.ratio !== null ? rr.ratio : (t.stopLoss ? t.rMultiple : null),
   };
@@ -475,10 +487,10 @@ export const TradingProvider = ({ children }) => {
       return false;
     }
 
-    const tradeWithId = {
+    const tradeWithId = sanitizeTradeData({
       ...newTrade,
       id: newTrade.id || `tr-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
-    };
+    });
 
     setTrades((prev) => [tradeWithId, ...prev].sort(compareTradesDescending));
 
@@ -531,7 +543,7 @@ export const TradingProvider = ({ children }) => {
   const logMultipleTrades = async (newTrades) => {
     if (!Array.isArray(newTrades) || newTrades.length === 0) return 0;
 
-    const formattedTrades = newTrades.map((t, idx) => ({
+    const formattedTrades = newTrades.map((t, idx) => sanitizeTradeData({
       ...t,
       id: t.id && !t.id.startsWith('ocr-') && !t.id.startsWith('sample-')
         ? t.id
@@ -575,11 +587,11 @@ export const TradingProvider = ({ children }) => {
     setTrades((prev) =>
       prev.map((trade) => {
         if (trade.id === tradeId) {
-          const updated = {
+          const updated = sanitizeTradeData({
             ...trade,
             ...closeData,
             status: 'CLOSED',
-          };
+          });
           updatedTradeObj = updated;
           if (updated.pnl > 0) {
             triggerWinCelebration();
@@ -642,7 +654,7 @@ export const TradingProvider = ({ children }) => {
 
   const updateTrade = async (tradeId, updatedData) => {
     setTrades((prev) =>
-      prev.map((trade) => (trade.id === tradeId ? { ...trade, ...updatedData } : trade)).sort(compareTradesDescending)
+      prev.map((trade) => (trade.id === tradeId ? sanitizeTradeData({ ...trade, ...updatedData }) : trade)).sort(compareTradesDescending)
     );
 
     if (isSupabaseConfigured && user?.id) {

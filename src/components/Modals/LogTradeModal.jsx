@@ -184,6 +184,15 @@ export const LogTradeModal = () => {
       rNum = plannedRR.ratio;
     }
 
+    let finalPnl = isClosed && pnl !== '' ? parseFloat(pnl) : null;
+    if (finalPnl !== null && pipsNum !== null && pipsNum !== 0) {
+      if (pipsNum < 0 && finalPnl > 0) {
+        finalPnl = -Math.abs(finalPnl);
+      } else if (pipsNum > 0 && finalPnl < 0) {
+        finalPnl = Math.abs(finalPnl);
+      }
+    }
+
     const tradeData = {
       pair: pair.trim().toUpperCase(),
       direction: direction.toUpperCase(),
@@ -193,7 +202,7 @@ export const LogTradeModal = () => {
       exitPrice: isClosed && exitPrice ? parseFloat(exitPrice) : null,
       stopLoss: stopLoss ? parseFloat(stopLoss) : null,
       takeProfit: takeProfit ? parseFloat(takeProfit) : null,
-      pnl: isClosed && pnl !== '' ? parseFloat(pnl) : null,
+      pnl: finalPnl,
       rMultiple: rNum,
       pips: pipsNum,
       date: isClosed ? closedAt : openedAt,

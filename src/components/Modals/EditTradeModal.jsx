@@ -58,6 +58,15 @@ export const EditTradeModal = () => {
       }
     }
 
+    let finalPnl = formData.status === 'CLOSED' ? (formData.pnl !== '' && formData.pnl != null ? parseFloat(formData.pnl) : 0) : null;
+    if (finalPnl !== null && pips !== null && pips !== 0) {
+      if (pips < 0 && finalPnl > 0) {
+        finalPnl = -Math.abs(finalPnl);
+      } else if (pips > 0 && finalPnl < 0) {
+        finalPnl = Math.abs(finalPnl);
+      }
+    }
+
     const prepared = {
       ...formData,
       lots,
@@ -66,7 +75,7 @@ export const EditTradeModal = () => {
       stopLoss,
       takeProfit,
       exitScreenshot: formData.exitScreenshot || null,
-      pnl: formData.status === 'CLOSED' ? (formData.pnl !== '' && formData.pnl != null ? parseFloat(formData.pnl) : 0) : null,
+      pnl: finalPnl,
       rMultiple,
       pips,
     };
