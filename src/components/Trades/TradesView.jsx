@@ -13,6 +13,7 @@ import {
   Image as ImageIcon,
   Camera,
   Sparkles,
+  Clock,
 } from 'lucide-react';
 import { useTrading } from '../../context/TradingContext';
 import {
@@ -20,6 +21,7 @@ import {
   formatR,
   formatPips,
   formatDateDisplay,
+  formatTimeDisplay,
 } from '../../utils/formatters';
 import { getSessionConfig } from '../../utils/sessionConfig';
 
@@ -352,9 +354,18 @@ export const TradesView = () => {
                 </div>
 
                 <div className="flex items-center justify-between text-xs font-num text-muted-foreground">
-                  <span className="flex items-center gap-1.5">
+                  <span className="flex items-center gap-1.5 flex-wrap">
                     <span>{formatDateDisplay(t.date)}</span>
-                    <span>·</span>
+                    {t.time && (
+                      <>
+                        <span className="text-muted-foreground/40">·</span>
+                        <span className="text-muted-foreground/85 flex items-center gap-1 font-mono text-[10px]">
+                          <Clock className="w-2.5 h-2.5 text-primary/70 shrink-0" />
+                          <span>{formatTimeDisplay(t.time)}</span>
+                        </span>
+                      </>
+                    )}
+                    <span className="text-muted-foreground/40">·</span>
                     {(() => {
                       const sc = getSessionConfig(t.session);
                       return (
@@ -620,9 +631,15 @@ export const TradesView = () => {
                           )}
                         </td>
 
-                        {/* Date */}
+                        {/* Date & Time */}
                         <td className="py-3.5 px-3 text-muted-foreground font-num">
-                          {formatDateDisplay(trade.date)}
+                          <div>{formatDateDisplay(trade.date)}</div>
+                          {trade.time && (
+                            <div className="text-[11px] text-muted-foreground/80 flex items-center gap-1 font-mono mt-0.5">
+                              <Clock className="w-3 h-3 text-primary/70 inline shrink-0" />
+                              <span>{formatTimeDisplay(trade.time)}</span>
+                            </div>
+                          )}
                         </td>
 
                         {/* P&L */}

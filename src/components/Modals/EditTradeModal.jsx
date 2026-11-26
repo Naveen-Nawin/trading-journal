@@ -122,8 +122,8 @@ export const EditTradeModal = () => {
             </div>
           </div>
 
-          {/* Lots & Date */}
-          <div className="grid grid-cols-2 gap-3">
+          {/* Lots & Date & Time */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-muted-foreground text-[11px] font-bold tracking-wider uppercase mb-1.5">
                 Lots
@@ -144,6 +144,20 @@ export const EditTradeModal = () => {
                 type="date"
                 value={formData.date}
                 onChange={(e) => handleChange('date', e.target.value)}
+                className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border focus:border-primary focus:ring-1 focus:ring-primary rounded-xl px-3 py-2.5 transition"
+              />
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-muted-foreground text-[11px] font-bold tracking-wider uppercase">
+                  Time
+                </label>
+                <span className="text-[10px] text-profit font-mono">IST</span>
+              </div>
+              <input
+                type="time"
+                value={formData.time || ''}
+                onChange={(e) => handleChange('time', e.target.value)}
                 className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border focus:border-primary focus:ring-1 focus:ring-primary rounded-xl px-3 py-2.5 transition"
               />
             </div>

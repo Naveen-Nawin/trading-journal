@@ -1,7 +1,7 @@
 import React from 'react';
-import { X, Calendar } from 'lucide-react';
+import { X, Calendar, Clock } from 'lucide-react';
 import { useTrading } from '../../context/TradingContext';
-import { formatCurrencyRaw, formatR, formatPips } from '../../utils/formatters';
+import { formatCurrencyRaw, formatR, formatPips, formatTimeDisplay } from '../../utils/formatters';
 
 export const DayTradesModal = () => {
   const { calendarDayModal, setCalendarDayModal, currency } = useTrading();
@@ -72,6 +72,12 @@ export const DayTradesModal = () => {
                     <span className="text-muted-foreground text-xs">
                       · {t.session}
                     </span>
+                    {t.time && (
+                      <span className="flex items-center gap-1 text-[11px] font-mono text-muted-foreground/80 bg-secondary/50 px-1.5 py-0.5 rounded border border-border/50">
+                        <Clock className="w-2.5 h-2.5 text-primary/70 shrink-0" />
+                        <span>{formatTimeDisplay(t.time)}</span>
+                      </span>
+                    )}
                   </div>
 
                   <span

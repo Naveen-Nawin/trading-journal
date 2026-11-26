@@ -87,3 +87,35 @@ export const formatDateDisplay = (dateStr) => {
 
   return `${day} ${month} ${year}`;
 };
+
+/**
+ * Returns current local time in HH:mm 24-hr format (e.g. "14:35")
+ * Compatible with HTML5 <input type="time" />
+ */
+export const nowTimeFormatted = () => {
+  const d = new Date();
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  return `${hours}:${minutes}`;
+};
+
+/**
+ * Formats a time string (e.g. "14:30" or "14:30:00") into 12-hour AM/PM display (e.g. "2:30 PM")
+ */
+export const formatTimeDisplay = (timeStr) => {
+  if (!timeStr) return '';
+  if (typeof timeStr !== 'string') return String(timeStr);
+  if (timeStr.includes('AM') || timeStr.includes('PM')) return timeStr;
+
+  const parts = timeStr.split(':');
+  if (parts.length >= 2) {
+    const hours = parseInt(parts[0], 10);
+    const minutes = parts[1];
+    if (!isNaN(hours)) {
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const h12 = hours % 12 || 12;
+      return `${h12}:${minutes} ${ampm}`;
+    }
+  }
+  return timeStr;
+};

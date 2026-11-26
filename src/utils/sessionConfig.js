@@ -109,8 +109,12 @@ export const getCurrentLiveSessionId = () => {
     if (totalMinutes >= 810 && totalMinutes < 1110) {
       return 'London';
     }
-    // 06:30 PM to 03:30 AM IST (1110 to 1440 mins OR 0 to 210 mins)
-    if (totalMinutes >= 1110 || totalMinutes < 210) {
+    // 06:30 PM to 10:30 PM IST (1110 to 1350 mins) - London / New York Overlap
+    if (totalMinutes >= 1110 && totalMinutes < 1350) {
+      return 'London/NY Overlap';
+    }
+    // 10:30 PM to 03:30 AM IST (1350 to 1440 mins OR 0 to 210 mins) - New York Solo
+    if (totalMinutes >= 1350 || totalMinutes < 210) {
       return 'New York';
     }
 

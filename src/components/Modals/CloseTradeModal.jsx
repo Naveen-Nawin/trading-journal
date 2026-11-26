@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { X, CheckCircle2, ImagePlus } from 'lucide-react';
 import { useTrading } from '../../context/TradingContext';
 import { calculateRealizedTradeStats, getPairPipDetails } from '../../utils/pipsAndRR';
+import { nowTimeFormatted } from '../../utils/formatters';
 
 export const CloseTradeModal = () => {
   const { tradeToClose, setTradeToClose, closeTrade, currency } = useTrading();
@@ -11,6 +12,7 @@ export const CloseTradeModal = () => {
   const [rMultiple, setRMultiple] = useState('');
   const [pips, setPips] = useState('');
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [closeTime, setCloseTime] = useState(() => nowTimeFormatted());
   const [notes, setNotes] = useState('');
   const [followedPlan, setFollowedPlan] = useState(true);
   const [exitScreenshot, setExitScreenshot] = useState(null);
@@ -24,6 +26,7 @@ export const CloseTradeModal = () => {
       setRMultiple('');
       setPips('');
       setDate(new Date().toISOString().slice(0, 10));
+      setCloseTime(nowTimeFormatted());
       setNotes(tradeToClose.notes || '');
       setFollowedPlan(tradeToClose.followedPlan ?? true);
       setExitScreenshot(tradeToClose.exitScreenshot || null);
@@ -69,6 +72,7 @@ export const CloseTradeModal = () => {
       rMultiple: rMultiple ? parseFloat(rMultiple) : 0,
       pips: pips ? parseFloat(pips) : 0,
       date,
+      time: closeTime,
       notes: notes.trim(),
       followedPlan,
       exitScreenshot,
@@ -160,7 +164,7 @@ export const CloseTradeModal = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div>
               <label className="block text-muted-foreground text-[11px] font-bold tracking-wider uppercase mb-1.5">
                 Exit Date
@@ -169,6 +173,20 @@ export const CloseTradeModal = () => {
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
+                className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border rounded-xl px-3 py-2.5"
+              />
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-muted-foreground text-[11px] font-bold tracking-wider uppercase">
+                  Exit Time
+                </label>
+                <span className="text-[10px] text-profit font-mono">IST</span>
+              </div>
+              <input
+                type="time"
+                value={closeTime}
+                onChange={(e) => setCloseTime(e.target.value)}
                 className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border rounded-xl px-3 py-2.5"
               />
             </div>

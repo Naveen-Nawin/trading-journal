@@ -3,6 +3,7 @@ import { X, ImagePlus, Camera, Sparkles, Lock, AlertTriangle, ShieldAlert } from
 import { useTrading } from '../../context/TradingContext';
 import { SESSIONS_LIST, isSessionActiveNow, getCurrentLiveSessionId } from '../../utils/sessionConfig';
 import { calculatePlannedRR, calculateRealizedTradeStats, getPairPipDetails } from '../../utils/pipsAndRR';
+import { nowTimeFormatted, formatTimeDisplay } from '../../utils/formatters';
 
 const SESSIONS = [
   { value: 'London', label: 'London' },
@@ -71,6 +72,8 @@ export const LogTradeModal = () => {
   const [closedAt, setClosedAt] = useState(todayFormatted());
   const [emotion, setEmotion] = useState('calm');
   const [openedAt, setOpenedAt] = useState(todayFormatted());
+  const [entryTime, setEntryTime] = useState(() => nowTimeFormatted());
+  const [exitTime, setExitTime] = useState(() => nowTimeFormatted());
   const [tags, setTags] = useState(['breakout']);
   const [customTag, setCustomTag] = useState('');
   const [notes, setNotes] = useState('');
@@ -106,6 +109,8 @@ export const LogTradeModal = () => {
       setClosedAt(todayFormatted());
       setEmotion('calm');
       setOpenedAt(todayFormatted());
+      setEntryTime(nowTimeFormatted());
+      setExitTime(nowTimeFormatted());
       setTags(['breakout']);
       setCustomTag('');
       setNotes('');
@@ -192,6 +197,9 @@ export const LogTradeModal = () => {
       rMultiple: rNum,
       pips: pipsNum,
       date: isClosed ? closedAt : openedAt,
+      time: isClosed && exitTime ? exitTime : entryTime,
+      opened_time: entryTime,
+      exit_time: isClosed && exitTime ? exitTime : null,
       opened_at: openedAt,
       closed_at: isClosed ? closedAt : null,
       status: isClosed ? 'CLOSED' : 'OPEN',
@@ -602,7 +610,7 @@ export const LogTradeModal = () => {
                     )}
                   </div>
                 )}
-                <div className="col-span-2 space-y-1.5">
+                <div className="space-y-1.5">
                   <label className="block text-muted-foreground text-xs font-medium">
                     Close date
                   </label>
@@ -613,12 +621,26 @@ export const LogTradeModal = () => {
                     className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border rounded-xl px-3 py-2.5 focus:outline-hidden focus:border-primary"
                   />
                 </div>
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-muted-foreground text-xs font-medium">
+                      Close time
+                    </label>
+                    <span className="text-[10px] text-profit font-mono">IST</span>
+                  </div>
+                  <input
+                    type="time"
+                    value={exitTime}
+                    onChange={(e) => setExitTime(e.target.value)}
+                    className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border rounded-xl px-3 py-2.5 focus:outline-hidden focus:border-primary"
+                  />
+                </div>
               </div>
             )}
           </div>
 
-          {/* Row 4: Emotion at entry & Open date */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {/* Row 4: Emotion at entry & Open date & Entry time */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div className="space-y-1.5">
               <label className="block text-muted-foreground text-xs font-medium">
                 Emotion at entry
@@ -649,6 +671,21 @@ export const LogTradeModal = () => {
                 type="date"
                 value={openedAt}
                 onChange={(e) => setOpenedAt(e.target.value)}
+                className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:border-primary"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <div className="flex items-center justify-between">
+                <label className="block text-muted-foreground text-xs font-medium">
+                  Entry time (Auto)
+                </label>
+                <span className="text-[10px] text-profit font-mono">IST</span>
+              </div>
+              <input
+                type="time"
+                value={entryTime}
+                onChange={(e) => setEntryTime(e.target.value)}
                 className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:border-primary"
               />
             </div>
