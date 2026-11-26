@@ -223,7 +223,7 @@ export const DashboardView = () => {
         <BreakdownBars />
       </div>
 
-      {/* Mini Calendar Preview */}
+      {/* Full Monthly P&L Calendar */}
       <div className="mt-8">
         <CalendarPreview />
       </div>
