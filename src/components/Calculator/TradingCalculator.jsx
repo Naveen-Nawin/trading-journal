@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { RotateCcw, Calculator, TrendingUp, Target, ShieldAlert, Sparkles, Layers } from 'lucide-react';
+import { RotateCcw, Calculator, Target } from 'lucide-react';
 
 const MARKETS = {
   xau: {
@@ -8,6 +8,9 @@ const MARKETS = {
     badge: 'Gold',
     title: 'XAUUSD Profit Calculator',
     sizeLabel: 'Lot Size',
+    pointsLabel: 'Points Captured',
+    slLabel: 'Stop Loss Points',
+    valueLabel: 'Value / Point',
     targetLabel: 'Account Target ($)',
     currency: '$',
     defaultSize: 0.08,
@@ -16,8 +19,46 @@ const MARKETS = {
     basePoints: 6.5,
     baseProfit: 54.72,
     type: 'xau',
-    footer: '0.08 Lots = $54.72 Profit at 6.5 Points',
+    footer: '0.08 Lots = $54.72 Profit at 6.5 Points ($8.418 / pt on 0.08)',
     pointShortcuts: [2.5, 5.0, 6.5, 10.0, 15.0, 20.0],
+  },
+  eurusd: {
+    id: 'eurusd',
+    name: 'EUR/USD',
+    badge: 'Forex Major',
+    title: 'EUR/USD Pip & Profit Calculator',
+    sizeLabel: 'Lot Size',
+    pointsLabel: 'Pips Captured (1 pip = 0.0001)',
+    slLabel: 'Stop Loss Pips',
+    valueLabel: 'Value / Pip',
+    targetLabel: 'Account Target ($)',
+    currency: '$',
+    defaultSize: 0.10,
+    step: 0.01,
+    unitsPerLot: 100000,
+    pipValuePerLot: 10,
+    type: 'forex',
+    footer: '1 Standard Lot = $10.00 / Pip • 0.10 Mini Lot = $1.00 / Pip • 0.01 Micro = $0.10 / Pip',
+    pointShortcuts: [10, 15, 20, 30, 50, 100],
+  },
+  gbpusd: {
+    id: 'gbpusd',
+    name: 'GBP/USD',
+    badge: 'Cable / Major',
+    title: 'GBP/USD Pip & Profit Calculator',
+    sizeLabel: 'Lot Size',
+    pointsLabel: 'Pips Captured (1 pip = 0.0001)',
+    slLabel: 'Stop Loss Pips',
+    valueLabel: 'Value / Pip',
+    targetLabel: 'Account Target ($)',
+    currency: '$',
+    defaultSize: 0.10,
+    step: 0.01,
+    unitsPerLot: 100000,
+    pipValuePerLot: 10,
+    type: 'forex',
+    footer: '1 Standard Lot = $10.00 / Pip • 0.10 Mini Lot = $1.00 / Pip • 0.01 Micro = $0.10 / Pip',
+    pointShortcuts: [10, 15, 25, 40, 60, 100],
   },
   eth: {
     id: 'eth',
@@ -25,12 +66,15 @@ const MARKETS = {
     badge: 'Crypto',
     title: 'ETH/USD Profit Calculator',
     sizeLabel: 'ETH Quantity',
+    pointsLabel: 'Points Captured ($)',
+    slLabel: 'Stop Loss Points ($)',
+    valueLabel: 'Value / Point',
     targetLabel: 'Account Target ($)',
     currency: '$',
     defaultSize: 2.64,
     step: 0.01,
     type: 'eth',
-    footer: 'P/L = ETH Quantity × Price Movement',
+    footer: 'P/L = ETH Quantity × Price Movement ($1 = 1 Point)',
     pointShortcuts: [10, 25, 50, 100, 200],
   },
   nifty: {
@@ -39,13 +83,16 @@ const MARKETS = {
     badge: '1 Lot = 65 Qty',
     title: 'NIFTY Profit Calculator',
     sizeLabel: 'Lot Size',
+    pointsLabel: 'Points Captured',
+    slLabel: 'Stop Loss Points',
+    valueLabel: 'Value / Point',
     targetLabel: 'Account Target (₹)',
     currency: '₹',
     defaultSize: 1,
     step: 1,
     quantityPerLot: 65,
     type: 'index',
-    footer: '1 Lot = 65 Quantity',
+    footer: '1 Lot = 65 Quantity • Value / Point = ₹65 per Lot',
     pointShortcuts: [20, 40, 60, 100, 150],
   },
   sensex: {
@@ -54,13 +101,16 @@ const MARKETS = {
     badge: '1 Lot = 20 Qty',
     title: 'SENSEX Profit Calculator',
     sizeLabel: 'Lot Size',
+    pointsLabel: 'Points Captured',
+    slLabel: 'Stop Loss Points',
+    valueLabel: 'Value / Point',
     targetLabel: 'Account Target (₹)',
     currency: '₹',
     defaultSize: 1,
     step: 1,
     quantityPerLot: 20,
     type: 'index',
-    footer: '1 Lot = 20 Quantity',
+    footer: '1 Lot = 20 Quantity • Value / Point = ₹20 per Lot',
     pointShortcuts: [50, 100, 200, 300, 500],
   },
 };
@@ -107,6 +157,12 @@ export const TradingCalculator = ({ isEmbedded = false }) => {
       valuePerPoint = config.baseProfit / config.basePoints / config.baseLot;
       profit = config.baseProfit * (s / config.baseLot) * (pts / config.basePoints);
       loss = config.baseProfit * (s / config.baseLot) * (stopLoss / config.basePoints);
+    } else if (config.type === 'forex') {
+      // Forex Standard: 1 standard lot = 100,000 units. Pip value = lot * $10
+      quantity = s * config.unitsPerLot;
+      valuePerPoint = s * config.pipValuePerLot;
+      profit = valuePerPoint * pts;
+      loss = valuePerPoint * stopLoss;
     } else if (config.type === 'eth') {
       quantity = s;
       valuePerPoint = quantity;
@@ -161,8 +217,8 @@ export const TradingCalculator = ({ isEmbedded = false }) => {
         </button>
       </div>
 
-      {/* Market Selector Buttons (4 Tabs) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-secondary/30 p-1.5 rounded-xl border border-border/60">
+      {/* Market Selector Buttons (6 Tabs) */}
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 bg-secondary/30 p-1.5 rounded-xl border border-border/60">
         {Object.keys(MARKETS).map((marketKey) => {
           const m = MARKETS[marketKey];
           const isActive = currentMarket === marketKey;
@@ -171,7 +227,7 @@ export const TradingCalculator = ({ isEmbedded = false }) => {
               key={marketKey}
               type="button"
               onClick={() => handleSelectMarket(marketKey)}
-              className={`py-2.5 px-3 rounded-lg text-sm font-bold font-num transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+              className={`py-2 px-2 rounded-lg text-xs sm:text-sm font-bold font-num transition-all cursor-pointer flex items-center justify-center gap-1 ${
                 isActive
                   ? 'bg-sky-400 text-slate-950 shadow-[0_0_15px_rgba(56,189,248,0.4)] font-extrabold'
                   : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
@@ -215,11 +271,11 @@ export const TradingCalculator = ({ isEmbedded = false }) => {
           />
         </div>
 
-        {/* Points Captured */}
+        {/* Points / Pips Captured */}
         <div className="space-y-1.5 bg-secondary/20 p-3.5 rounded-xl border border-border/60">
           <div className="flex items-center justify-between">
             <label className="block text-xs font-bold tracking-wide uppercase text-profit">
-              Points Captured (Profit)
+              {config.pointsLabel || 'Points Captured (Profit)'}
             </label>
             <span className="text-[10px] text-muted-foreground font-mono">gain</span>
           </div>
@@ -245,11 +301,11 @@ export const TradingCalculator = ({ isEmbedded = false }) => {
           </div>
         </div>
 
-        {/* Stop Loss Points */}
+        {/* Stop Loss Points / Pips */}
         <div className="space-y-1.5 bg-secondary/20 p-3.5 rounded-xl border border-border/60">
           <div className="flex items-center justify-between">
             <label className="block text-xs font-bold tracking-wide uppercase text-loss">
-              Stop Loss Points (Risk)
+              {config.slLabel || 'Stop Loss Points (Risk)'}
             </label>
             <span className="text-[10px] text-muted-foreground font-mono">sl distance</span>
           </div>
@@ -342,21 +398,29 @@ export const TradingCalculator = ({ isEmbedded = false }) => {
             <span className="w-2 h-2 rounded-full bg-purple-400" />
           </div>
           <div className="mt-2 text-2xl sm:text-3xl font-black font-num text-purple-400 truncate">
-            {config.type === 'eth' ? `${results.quantity.toFixed(2)} ETH` : results.quantity.toFixed(2)}
+            {config.type === 'eth'
+              ? `${results.quantity.toFixed(2)} ETH`
+              : config.type === 'forex'
+              ? `${results.quantity.toLocaleString()} units`
+              : results.quantity.toFixed(2)}
           </div>
-          <div className="text-[10px] text-purple-400/80 font-mono mt-1">Actual position volume</div>
+          <div className="text-[10px] text-purple-400/80 font-mono mt-1">
+            {config.type === 'forex' ? `${size} Standard Lots` : 'Actual position volume'}
+          </div>
         </div>
 
-        {/* Card 6: Value Per Point */}
+        {/* Card 6: Value Per Point / Pip */}
         <div className="bg-secondary/40 border border-violet-500/30 rounded-xl p-4 flex flex-col justify-between shadow-xs hover:border-violet-500/60 transition">
           <div className="text-muted-foreground text-xs font-bold uppercase tracking-wider flex items-center justify-between">
-            <span>Value / Point</span>
+            <span>{config.valueLabel || 'Value / Point'}</span>
             <span className="w-2 h-2 rounded-full bg-violet-400" />
           </div>
           <div className="mt-2 text-2xl sm:text-3xl font-black font-num text-violet-400 truncate">
             {config.currency}{results.valuePerPoint.toFixed(2)}
           </div>
-          <div className="text-[10px] text-violet-400/80 font-mono mt-1">Per 1.0 point move</div>
+          <div className="text-[10px] text-violet-400/80 font-mono mt-1">
+            {config.type === 'forex' ? 'Per 1.0 pip movement' : 'Per 1.0 point move'}
+          </div>
         </div>
       </div>
 
