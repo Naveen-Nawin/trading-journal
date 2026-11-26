@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CheckSquare, Trash2, Plus } from 'lucide-react';
 import { useTrading } from '../../context/TradingContext';
+import { TradingCalculator } from '../Calculator/TradingCalculator';
 
 export const TradingPlanView = () => {
   const { rules, toggleRule, addRule, deleteRule, stats } = useTrading();
@@ -140,6 +141,11 @@ export const TradingPlanView = () => {
             <span>Add rule</span>
           </button>
         </form>
+      </div>
+
+      {/* Trading Profit Calculator Module below Trading Plan */}
+      <div className="pt-4 border-t border-border/60">
+        <TradingCalculator isEmbedded={true} />
       </div>
     </div>
   );

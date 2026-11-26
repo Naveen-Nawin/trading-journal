@@ -4,6 +4,7 @@ import {
   Layers,
   Calendar as CalendarIcon,
   CheckSquare,
+  Calculator,
   TrendingUp,
   LogIn,
   LogOut,
@@ -23,6 +24,7 @@ export const Sidebar = ({ mobileOpen, setMobileOpen }) => {
     { id: 'trades', label: 'Trades', icon: Layers },
     { id: 'calendar', label: 'Calendar', icon: CalendarIcon },
     { id: 'plan', label: 'Trading Plan', icon: CheckSquare },
+    { id: 'calculator', label: 'Calculator', icon: Calculator },
   ];
 
   const handleNavClick = (id) => {

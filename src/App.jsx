@@ -6,6 +6,7 @@ import { DashboardView } from './components/Dashboard/DashboardView';
 import { TradesView } from './components/Trades/TradesView';
 import { CalendarView } from './components/Calendar/CalendarView';
 import { TradingPlanView } from './components/TradingPlan/TradingPlanView';
+import { CalculatorView } from './components/Calculator/CalculatorView';
 import { LogTradeModal } from './components/Modals/LogTradeModal';
 import { CloseTradeModal } from './components/Modals/CloseTradeModal';
 import { EditTradeModal } from './components/Modals/EditTradeModal';
@@ -144,6 +145,7 @@ export function AppContent() {
         {currentTab === 'trades' && <TradesView />}
         {currentTab === 'calendar' && <CalendarView />}
         {currentTab === 'plan' && <TradingPlanView />}
+        {currentTab === 'calculator' && <CalculatorView />}
       </main>
 
       {/* Floating Action Button: + Log Trade */}
