@@ -53,7 +53,7 @@ export const EditTradeModal = () => {
       }
       if (stats.rMultiple !== null) {
         rMultiple = stats.rMultiple;
-      } else if (!stopLoss && (rMultiple === -1 || rMultiple === 1.5)) {
+      } else if (!stopLoss) {
         rMultiple = null;
       }
     }

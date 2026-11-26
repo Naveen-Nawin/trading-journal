@@ -378,11 +378,11 @@ export const getEffectiveTradeRR = (trade) => {
   }
 
   // 3. User manual rMultiple override (if trade has an explicitly saved valid value,
-  // but exclude dummy placeholder values when no SL is set)
+  // but if no valid SL is set, risk was never defined, so R cannot be calculated)
   if (trade.rMultiple !== undefined && trade.rMultiple !== null && !isNaN(parseFloat(trade.rMultiple))) {
     const rVal = parseFloat(trade.rMultiple);
-    // If no SL was provided and rVal is exactly -1.0 or 1.5 from old OCR/default mock, return null
-    if ((isNaN(sl) || sl <= 0) && (rVal === -1 || rVal === 1.5)) {
+    // If no SL was provided, risk is undefined -> display '-' instead of fake +0.00R or -1.0R
+    if (isNaN(sl) || sl <= 0 || rVal === 0 || rVal === -1 || rVal === 1.5) {
       return { ratio: null, formatted: '-', isPlanned: false };
     }
     return {
