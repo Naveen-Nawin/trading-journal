@@ -63,12 +63,16 @@ export const getPairPipDetails = (rawPair = '') => {
     };
   }
 
-  // 4. Indices (US30, NAS100, USTEC, SPX500, US500, GER30, GER40, DAX, UK100, etc.)
+  // 4. Indices (US30, US300, US100, NASDAQ, NAS100, USTEC, SPX500, US500, GER30, GER40, DAX, UK100, etc.)
   if (
     pair.includes('US30') ||
+    pair.includes('US300') ||
     pair.includes('DJ30') ||
     pair.includes('DOW') ||
+    pair.includes('US100') ||
+    pair.includes('NASDAQ') ||
     pair.includes('NAS100') ||
+    pair.includes('NAS') ||
     pair.includes('USTEC') ||
     pair.includes('NDX') ||
     pair.includes('SPX') ||

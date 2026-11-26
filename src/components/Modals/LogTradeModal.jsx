@@ -318,11 +318,14 @@ export const LogTradeModal = () => {
                 required
                 className="w-full bg-secondary/40 text-profit font-bold text-sm font-num border border-border rounded-xl px-3.5 py-2.5 focus:outline-hidden focus:border-primary tracking-wide"
               />
-              <div className="flex items-center gap-1.5 pt-1">
+              <div className="flex items-center gap-1.5 pt-1 flex-wrap">
                 {[
                   { label: 'GOLD', value: 'XAUUSD' },
+                  { label: 'EURUSD', value: 'EURUSD' },
+                  { label: 'GBPUSD', value: 'GBPUSD' },
+                  { label: 'US100', value: 'US100' },
+                  { label: 'US30', value: 'US30' },
                   { label: 'BTC', value: 'BTCUSD' },
-                  { label: 'ETH', value: 'ETHUSD' },
                 ].map((item) => {
                   const isSelected = pair === item.value || pair === item.label;
                   return (

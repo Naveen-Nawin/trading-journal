@@ -60,6 +60,42 @@ const MARKETS = {
     footer: '1 Standard Lot = $10.00 / Pip • 0.10 Mini Lot = $1.00 / Pip • 0.01 Micro = $0.10 / Pip',
     pointShortcuts: [10, 15, 25, 40, 60, 100],
   },
+  us100: {
+    id: 'us100',
+    name: 'US100 / Nasdaq',
+    badge: 'Nasdaq 100',
+    title: 'Nasdaq / US100 Profit Calculator',
+    sizeLabel: 'Lot Size (Contracts)',
+    pointsLabel: 'Index Points Captured (pts)',
+    slLabel: 'Stop Loss Points (pts)',
+    valueLabel: 'Value / Point',
+    targetLabel: 'Account Target ($)',
+    currency: '$',
+    defaultSize: 1.0,
+    step: 0.01,
+    pointMultiplier: 1.0, // 1 lot = $1/point standard retail CFD
+    type: 'index_us',
+    footer: '1.0 Lot = $1.00 per Index Point • 50 Points move = $50.00 Profit on 1.0 Lot',
+    pointShortcuts: [25, 50, 100, 150, 250, 500],
+  },
+  us30: {
+    id: 'us30',
+    name: 'US30 / US300',
+    badge: 'Dow Jones 30',
+    title: 'US30 / US300 Profit Calculator',
+    sizeLabel: 'Lot Size (Contracts)',
+    pointsLabel: 'Index Points Captured (pts)',
+    slLabel: 'Stop Loss Points (pts)',
+    valueLabel: 'Value / Point',
+    targetLabel: 'Account Target ($)',
+    currency: '$',
+    defaultSize: 1.0,
+    step: 0.01,
+    pointMultiplier: 1.0, // 1 lot = $1/point standard retail CFD
+    type: 'index_us',
+    footer: '1.0 Lot = $1.00 per Index Point • 100 Points move = $100.00 Profit on 1.0 Lot',
+    pointShortcuts: [50, 100, 150, 200, 300, 500],
+  },
   eth: {
     id: 'eth',
     name: 'ETH',
@@ -123,6 +159,8 @@ export const TradingCalculator = ({ isEmbedded = false }) => {
   const [points, setPoints] = useState(0);
   const [sl, setSl] = useState(0);
   const [target, setTarget] = useState(1000);
+  // Broker multiplier setting for US Indices (default 1.0 = $1/point)
+  const [indexMultiplier, setIndexMultiplier] = useState(1.0);
 
   const handleSelectMarket = (marketKey) => {
     setCurrentMarket(marketKey);
@@ -131,6 +169,7 @@ export const TradingCalculator = ({ isEmbedded = false }) => {
     setPoints(0);
     setSl(0);
     setTarget(1000);
+    setIndexMultiplier(1.0);
   };
 
   const resetCalculator = () => {
@@ -138,6 +177,7 @@ export const TradingCalculator = ({ isEmbedded = false }) => {
     setPoints(0);
     setSl(0);
     setTarget(1000);
+    setIndexMultiplier(1.0);
   };
 
   // Calculations
@@ -161,6 +201,12 @@ export const TradingCalculator = ({ isEmbedded = false }) => {
       // Forex Standard: 1 standard lot = 100,000 units. Pip value = lot * $10
       quantity = s * config.unitsPerLot;
       valuePerPoint = s * config.pipValuePerLot;
+      profit = valuePerPoint * pts;
+      loss = valuePerPoint * stopLoss;
+    } else if (config.type === 'index_us') {
+      // US Indices: 1 standard retail CFD lot = $1/point (or customizable multiplier)
+      quantity = s;
+      valuePerPoint = s * indexMultiplier;
       profit = valuePerPoint * pts;
       loss = valuePerPoint * stopLoss;
     } else if (config.type === 'eth') {
@@ -188,10 +234,10 @@ export const TradingCalculator = ({ isEmbedded = false }) => {
       targetPercentNum,
       targetPercent,
     };
-  }, [currentMarket, config, size, points, sl, target]);
+  }, [currentMarket, config, size, points, sl, target, indexMultiplier]);
 
   return (
-    <div className={`w-full max-w-3xl mx-auto rounded-2xl border border-border bg-card/90 backdrop-blur-xl shadow-2xl p-5 sm:p-7 space-y-6 animate-rise ${isEmbedded ? 'mt-8' : ''}`}>
+    <div className={`w-full max-w-4xl mx-auto rounded-2xl border border-border bg-card/90 backdrop-blur-xl shadow-2xl p-5 sm:p-7 space-y-6 animate-rise ${isEmbedded ? 'mt-8' : ''}`}>
       {/* Header bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border/80 pb-5">
         <div>
@@ -199,7 +245,7 @@ export const TradingCalculator = ({ isEmbedded = false }) => {
             <Calculator className="w-4 h-4 text-sky-400" />
             <span>Position Size & Profit Engine</span>
           </div>
-          <h2 className="text-xl sm:text-2xl font-black text-foreground tracking-tight mt-1 flex items-center gap-2">
+          <h2 className="text-xl sm:text-2xl font-black text-foreground tracking-tight mt-1 flex items-center gap-2 flex-wrap">
             <span>{config.title}</span>
             <span className="text-xs px-2 py-0.5 rounded-md font-mono font-bold bg-sky-500/15 text-sky-400 border border-sky-500/30">
               {config.badge}
@@ -217,8 +263,8 @@ export const TradingCalculator = ({ isEmbedded = false }) => {
         </button>
       </div>
 
-      {/* Market Selector Buttons (6 Tabs) */}
-      <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5 bg-secondary/30 p-1.5 rounded-xl border border-border/60">
+      {/* Market Selector Buttons (8 Tabs) */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-1.5 bg-secondary/30 p-1.5 rounded-xl border border-border/60">
         {Object.keys(MARKETS).map((marketKey) => {
           const m = MARKETS[marketKey];
           const isActive = currentMarket === marketKey;
@@ -227,17 +273,45 @@ export const TradingCalculator = ({ isEmbedded = false }) => {
               key={marketKey}
               type="button"
               onClick={() => handleSelectMarket(marketKey)}
-              className={`py-2 px-2 rounded-lg text-xs sm:text-sm font-bold font-num transition-all cursor-pointer flex items-center justify-center gap-1 ${
+              className={`py-2 px-1.5 rounded-lg text-xs font-bold font-num transition-all cursor-pointer flex items-center justify-center text-center ${
                 isActive
                   ? 'bg-sky-400 text-slate-950 shadow-[0_0_15px_rgba(56,189,248,0.4)] font-extrabold'
                   : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60'
               }`}
             >
-              <span>{m.name}</span>
+              <span className="truncate">{m.name}</span>
             </button>
           );
         })}
       </div>
+
+      {/* Index Contract Multiplier Toggle (only for US Indices) */}
+      {config.type === 'index_us' && (
+        <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 rounded-xl border border-border/60 bg-secondary/20 text-xs">
+          <span className="text-muted-foreground font-medium">Broker Contract Spec:</span>
+          <div className="flex items-center gap-1.5">
+            {[
+              { label: 'Standard Retail ($1/pt)', val: 1.0 },
+              { label: 'Mini ($2/pt)', val: 2.0 },
+              { label: 'High Vol ($5/pt)', val: 5.0 },
+              { label: 'Futures ($20/pt)', val: 20.0 },
+            ].map((opt) => (
+              <button
+                key={opt.val}
+                type="button"
+                onClick={() => setIndexMultiplier(opt.val)}
+                className={`px-2 py-1 rounded-md text-[11px] font-num font-bold transition cursor-pointer border ${
+                  indexMultiplier === opt.val
+                    ? 'bg-sky-500/20 text-sky-400 border-sky-500/50 shadow-xs'
+                    : 'bg-secondary/40 text-muted-foreground border-border hover:text-foreground'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Inputs Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -402,10 +476,12 @@ export const TradingCalculator = ({ isEmbedded = false }) => {
               ? `${results.quantity.toFixed(2)} ETH`
               : config.type === 'forex'
               ? `${results.quantity.toLocaleString()} units`
+              : config.type === 'index_us'
+              ? `${size} Contracts`
               : results.quantity.toFixed(2)}
           </div>
           <div className="text-[10px] text-purple-400/80 font-mono mt-1">
-            {config.type === 'forex' ? `${size} Standard Lots` : 'Actual position volume'}
+            {config.type === 'forex' ? `${size} Standard Lots` : config.type === 'index_us' ? 'Index Position' : 'Actual position volume'}
           </div>
         </div>
 

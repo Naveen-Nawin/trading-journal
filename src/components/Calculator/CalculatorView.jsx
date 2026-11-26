@@ -15,7 +15,7 @@ export const CalculatorView = () => {
           Trading <span className="text-profit glow-green">Profit Calculator</span>
         </h1>
         <p className="text-muted-foreground text-xs mt-1.5 max-w-2xl leading-relaxed">
-          Simulate exact profits, losses, risk-to-reward ratios, and target milestones before entering the market. Supports Gold (XAUUSD), EUR/USD, GBP/USD, Ethereum (ETH), NIFTY, and SENSEX.
+          Simulate exact profits, losses, risk-to-reward ratios, and target milestones before entering the market. Supports Gold (XAUUSD), EUR/USD, GBP/USD, Nasdaq (US100), Dow Jones (US30 / US300), Ethereum (ETH), NIFTY, and SENSEX.
         </p>
       </div>
 
