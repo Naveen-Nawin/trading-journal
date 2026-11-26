@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Save, ImagePlus, AlertCircle } from 'lucide-react';
+import { X, Save, ImagePlus, AlertCircle, AlertTriangle } from 'lucide-react';
 import { useTrading } from '../../context/TradingContext';
 import { SESSIONS_LIST, isSessionActiveNow } from '../../utils/sessionConfig';
+import { calculatePlannedRR, calculateRealizedTradeStats, getPairPipDetails } from '../../utils/pipsAndRR';
 
 export const EditTradeModal = () => {
   const { tradeToEdit, setTradeToEdit, updateTrade, currency } = useTrading();
@@ -37,11 +38,21 @@ export const EditTradeModal = () => {
     let rMultiple = formData.status === 'CLOSED' ? (formData.rMultiple !== '' && formData.rMultiple != null ? parseFloat(formData.rMultiple) : null) : null;
     let pips = formData.status === 'CLOSED' ? (formData.pips !== '' && formData.pips != null ? parseFloat(formData.pips) : null) : null;
 
-    // Auto-calculate R-Multiple if stopLoss, entry, and exit are available and R was not manually specified
-    if (formData.status === 'CLOSED' && exitPrice != null && stopLoss != null && Math.abs(entryPrice - stopLoss) > 0) {
+    // Auto-calculate accurate pips and R-Multiple based on pair
+    if (formData.status === 'CLOSED' && exitPrice != null && entryPrice > 0) {
+      const stats = calculateRealizedTradeStats(
+        formData.pair,
+        formData.direction,
+        entryPrice,
+        exitPrice,
+        stopLoss,
+        lots
+      );
+      if (pips === null || pips === 0) {
+        pips = stats.pips;
+      }
       if (rMultiple === null || rMultiple === 0) {
-        const diff = formData.direction === 'BUY' ? exitPrice - entryPrice : entryPrice - exitPrice;
-        rMultiple = parseFloat((diff / Math.abs(entryPrice - stopLoss)).toFixed(2));
+        rMultiple = stats.rMultiple;
       }
     }
 
@@ -242,6 +253,48 @@ export const EditTradeModal = () => {
               />
             </div>
           </div>
+
+          {/* Pair-Aware Live R:R Analytics */}
+          {(() => {
+            const editRR = calculatePlannedRR(
+              formData.pair,
+              formData.direction,
+              formData.entryPrice,
+              formData.stopLoss,
+              formData.takeProfit
+            );
+            if (!editRR.riskPips && !editRR.rewardPips && !editRR.warning) return null;
+            return (
+              <div className="p-3 rounded-xl border border-border/80 bg-secondary/30 text-xs font-num animate-rise">
+                {editRR.warning ? (
+                  <div className="flex items-center gap-2 text-amber-400 font-medium">
+                    <AlertTriangle className="w-4 h-4 shrink-0" />
+                    <span>{editRR.warning}</span>
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-3">
+                      {editRR.riskPips !== null && (
+                        <span className="text-loss">
+                          Risk: -{editRR.riskPips} {editRR.unitName}
+                        </span>
+                      )}
+                      {editRR.rewardPips !== null && (
+                        <span className="text-profit">
+                          Reward: +{editRR.rewardPips} {editRR.unitName}
+                        </span>
+                      )}
+                    </div>
+                    {editRR.ratio !== null && (
+                      <span className="px-2 py-0.5 rounded-lg bg-profit/20 text-profit border border-profit/40 font-bold">
+                        {editRR.ratioFormatted} RR
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {formData.status === 'CLOSED' && (
             <div className="grid grid-cols-3 gap-3">

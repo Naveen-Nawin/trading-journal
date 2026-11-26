@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, CheckCircle2, ImagePlus } from 'lucide-react';
 import { useTrading } from '../../context/TradingContext';
+import { calculateRealizedTradeStats, getPairPipDetails } from '../../utils/pipsAndRR';
 
 export const CloseTradeModal = () => {
   const { tradeToClose, setTradeToClose, closeTrade, currency } = useTrading();
@@ -38,22 +39,23 @@ export const CloseTradeModal = () => {
     const lotNum = parseFloat(tradeToClose.lots) || 0.1;
 
     if (!isNaN(entry) && !isNaN(exit)) {
-      const isBuy = tradeToClose.direction === 'BUY';
-      const diff = isBuy ? exit - entry : entry - exit;
-      const isJpyOrGold = tradeToClose.pair.includes('JPY') || tradeToClose.pair.includes('XAU');
-      const pipMultiplier = isJpyOrGold ? 100 : 10000;
-      const calcPips = parseFloat((diff * pipMultiplier).toFixed(1));
-      setPips(calcPips);
+      const stats = calculateRealizedTradeStats(
+        tradeToClose.pair,
+        tradeToClose.direction,
+        entry,
+        exit,
+        sl,
+        lotNum
+      );
 
-      if (!pnl) {
-        const estPnl = parseFloat((calcPips * lotNum * 10).toFixed(2));
-        setPnl(estPnl);
+      if (stats.pips !== null) {
+        setPips(stats.pips);
       }
-
-      if (!isNaN(sl) && Math.abs(entry - sl) > 0) {
-        const risk = Math.abs(entry - sl);
-        const reward = diff;
-        setRMultiple(parseFloat((reward / risk).toFixed(2)));
+      if (stats.rMultiple !== null) {
+        setRMultiple(stats.rMultiple);
+      }
+      if (!pnl && stats.estimatedPnl !== null) {
+        setPnl(stats.estimatedPnl);
       }
     }
   };

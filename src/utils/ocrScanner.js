@@ -1,47 +1,19 @@
 import { createWorker } from 'tesseract.js';
+import { calculatePipsBetween, calculateRealizedTradeStats } from './pipsAndRR';
 
 /**
  * Calculates pips based on pair, direction, entry, and exit.
  */
 export const calculatePips = (pair = '', direction = 'BUY', entry = 0, exit = 0) => {
-  if (!entry || !exit) return 0;
-  const diff = direction === 'BUY' ? exit - entry : entry - exit;
-  const cleanPair = (pair || '').toUpperCase();
-  const isJpyOrGold = cleanPair.includes('JPY') || cleanPair.includes('XAU');
-  const isCrypto = cleanPair.includes('BTC') || cleanPair.includes('ETH');
-  
-  if (isCrypto) {
-    return parseFloat(diff.toFixed(2));
-  }
-  const multiplier = isJpyOrGold ? 100 : 10000;
-  return parseFloat((diff * multiplier).toFixed(1));
+  return calculatePipsBetween(pair, direction, entry, exit);
 };
 
 /**
  * Calculates theoretical P&L from lot size & price difference
  */
 export const calculateTheoreticalPnl = (pair = '', direction = 'BUY', lots = 0.1, entry = 0, exit = 0) => {
-  if (!entry || !exit || !lots) return 0;
-  const diff = direction === 'BUY' ? exit - entry : entry - exit;
-  const cleanPair = (pair || '').toUpperCase();
-
-  if (cleanPair.includes('BTC')) {
-    // 1 lot = 1 BTC
-    return parseFloat((diff * lots).toFixed(2));
-  } else if (cleanPair.includes('XAU')) {
-    // 1 lot = 100 oz of gold
-    return parseFloat((diff * 100 * lots).toFixed(2));
-  } else if (cleanPair.includes('XAG')) {
-    // 1 lot = 5000 oz
-    return parseFloat((diff * 5000 * lots).toFixed(2));
-  } else {
-    // Standard forex: 1 standard lot = 100,000 units (~$10/pip on EURUSD)
-    const isJpy = cleanPair.includes('JPY');
-    const multiplier = isJpy ? 100 : 10000;
-    const pips = diff * multiplier;
-    const pipValuePerLot = 10; // Approx USD per pip per 1.0 standard lot
-    return parseFloat((pips * lots * pipValuePerLot).toFixed(2));
-  }
+  const stats = calculateRealizedTradeStats(pair, direction, entry, exit, null, lots);
+  return stats.estimatedPnl || 0;
 };
 
 /**

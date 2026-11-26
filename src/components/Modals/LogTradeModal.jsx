@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { X, ImagePlus, Camera, Sparkles, Lock, AlertTriangle, ShieldAlert } from 'lucide-react';
 import { useTrading } from '../../context/TradingContext';
 import { SESSIONS_LIST, isSessionActiveNow, getCurrentLiveSessionId } from '../../utils/sessionConfig';
+import { calculatePlannedRR, calculateRealizedTradeStats, getPairPipDetails } from '../../utils/pipsAndRR';
 
 const SESSIONS = [
   { value: 'London', label: 'London' },
@@ -79,6 +80,11 @@ export const LogTradeModal = () => {
 
   const fileRef = useRef(null);
   const exitFileRef = useRef(null);
+
+  // Live Pair-Aware Pips & R:R calculations
+  const plannedRR = calculatePlannedRR(pair, direction, entryPrice, stopLoss, takeProfit);
+  const realizedStats = calculateRealizedTradeStats(pair, direction, entryPrice, exitPrice, stopLoss, lots);
+  const pipDetails = getPairPipDetails(pair);
 
   useEffect(() => {
     if (isLogTradeOpen) {
@@ -165,17 +171,12 @@ export const LogTradeModal = () => {
     let rNum = null;
     const entry = parseFloat(entryPrice);
     const exit = parseFloat(exitPrice);
-    const sl = parseFloat(stopLoss);
 
     if (isClosed && !isNaN(entry) && !isNaN(exit)) {
-      const diff = direction === 'buy' ? exit - entry : entry - exit;
-      const isJpyOrGold = pair.includes('JPY') || pair.includes('XAU');
-      const pipMultiplier = isJpyOrGold ? 100 : 10000;
-      pipsNum = parseFloat((diff * pipMultiplier).toFixed(1));
-
-      if (!isNaN(sl) && Math.abs(entry - sl) > 0) {
-        rNum = parseFloat((diff / Math.abs(entry - sl)).toFixed(2));
-      }
+      pipsNum = realizedStats.pips;
+      rNum = realizedStats.rMultiple;
+    } else if (!isClosed && plannedRR.ratio !== null) {
+      rNum = plannedRR.ratio;
     }
 
     const tradeData = {
@@ -431,6 +432,51 @@ export const LogTradeModal = () => {
             </div>
           </div>
 
+          {/* Pair-Aware Live R:R & Pip Analytics Card */}
+          {(plannedRR.riskPips !== null || plannedRR.rewardPips !== null || plannedRR.warning) && (
+            <div className="p-3 rounded-xl border border-border/80 bg-secondary/30 backdrop-blur-xs space-y-1.5 animate-rise">
+              {plannedRR.warning ? (
+                <div className="flex items-center gap-2 text-xs text-amber-400 font-medium">
+                  <AlertTriangle className="w-4 h-4 shrink-0 animate-bounce" />
+                  <span>{plannedRR.warning}</span>
+                </div>
+              ) : (
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-num">
+                  <div className="flex items-center gap-3">
+                    {plannedRR.riskPips !== null && (
+                      <span className="text-loss flex items-center gap-1">
+                        <span>Risk (SL):</span>
+                        <strong className="font-bold">-{plannedRR.riskPips} {plannedRR.unitName}</strong>
+                      </span>
+                    )}
+                    {plannedRR.rewardPips !== null && (
+                      <span className="text-profit flex items-center gap-1">
+                        <span>Reward (TP):</span>
+                        <strong className="font-bold">+{plannedRR.rewardPips} {plannedRR.unitName}</strong>
+                      </span>
+                    )}
+                  </div>
+                  {plannedRR.ratio !== null && (
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-muted-foreground text-[11px] font-sans">Planned R:R:</span>
+                      <span
+                        className={`px-2 py-0.5 rounded-lg font-bold text-xs shadow-xs ${
+                          plannedRR.ratio >= 2
+                            ? 'bg-profit/20 text-profit border border-profit/40 glow-green'
+                            : plannedRR.ratio >= 1
+                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40'
+                            : 'bg-loss/20 text-loss border border-loss/40'
+                        }`}
+                      >
+                        {plannedRR.ratioFormatted} RR
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Row 2b: Trading Session (Color-Coded Interactive Selection with IST Timings) */}
           <div className="space-y-2 p-3.5 rounded-xl border border-border/80 bg-secondary/20">
             <div className="flex items-center justify-between">
@@ -527,6 +573,35 @@ export const LogTradeModal = () => {
                     className="w-full bg-secondary/40 text-foreground font-num text-xs border border-border rounded-xl px-3 py-2.5 placeholder-muted-foreground/50 focus:outline-hidden focus:border-primary"
                   />
                 </div>
+
+                {/* Realized Stats & Auto P&L helper */}
+                {realizedStats.pips !== null && (
+                  <div className="col-span-2 p-2.5 rounded-xl border border-border/80 bg-secondary/30 flex flex-wrap items-center justify-between gap-2 text-xs font-num animate-rise">
+                    <div className="flex items-center gap-3">
+                      <span className={`font-bold ${realizedStats.pips >= 0 ? 'text-profit' : 'text-loss'}`}>
+                        {realizedStats.pips >= 0 ? '+' : ''}{realizedStats.pips} {pipDetails.unitName}
+                      </span>
+                      {realizedStats.rMultiple !== null && (
+                        <span className={`px-2 py-0.5 rounded-md font-bold text-[11px] ${
+                          realizedStats.rMultiple >= 0
+                            ? 'bg-profit/20 text-profit border border-profit/35'
+                            : 'bg-loss/20 text-loss border border-loss/35'
+                        }`}>
+                          {realizedStats.rMultipleFormatted} Multiple
+                        </span>
+                      )}
+                    </div>
+                    {realizedStats.estimatedPnl !== null && pnl === '' && (
+                      <button
+                        type="button"
+                        onClick={() => setPnl(String(realizedStats.estimatedPnl))}
+                        className="text-[11px] text-primary hover:underline font-bold cursor-pointer"
+                      >
+                        Auto-fill est. P&L: ${realizedStats.estimatedPnl}
+                      </button>
+                    )}
+                  </div>
+                )}
                 <div className="col-span-2 space-y-1.5">
                   <label className="block text-muted-foreground text-xs font-medium">
                     Close date
