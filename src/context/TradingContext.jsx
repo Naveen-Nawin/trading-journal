@@ -877,11 +877,30 @@ export const TradingProvider = ({ children }) => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
-  const importTrades = (importedList) => {
-    if (!Array.isArray(importedList) || importedList.length === 0) return;
-    setTrades((prev) => [...importedList, ...prev]);
+  const exportBackupJSON = () => {
+    const backupData = {
+      version: '1.0',
+      exportedAt: new Date().toISOString(),
+      tradesCount: trades.length,
+      trades: trades,
+    };
+    const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `pipdesk-full-backup-with-images-${new Date().toISOString().slice(0, 10)}.json`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const importTrades = async (importedList) => {
+    if (!Array.isArray(importedList) || importedList.length === 0) return 0;
+    return await logMultipleTrades(importedList);
   };
 
   return (
@@ -924,6 +943,7 @@ export const TradingProvider = ({ children }) => {
         deleteRule,
         resetToDefaults,
         exportCSV,
+        exportBackupJSON,
         importTrades,
         lightbox,
         setLightbox,

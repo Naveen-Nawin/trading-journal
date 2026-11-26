@@ -14,6 +14,7 @@ import {
   Camera,
   Sparkles,
   Clock,
+  Archive,
 } from 'lucide-react';
 import { useTrading } from '../../context/TradingContext';
 import {
@@ -36,6 +37,7 @@ export const TradesView = () => {
     setTradeToDelete,
     deleteMultipleTrades,
     exportCSV,
+    exportBackupJSON,
     setIsImportExportOpen,
     setIsScanModalOpen,
     logMultipleTrades,
@@ -161,14 +163,23 @@ export const TradesView = () => {
             className="flex items-center gap-2 px-3.5 py-2 bg-secondary/50 hover:bg-secondary text-foreground border border-border rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer active:scale-95 hover:border-border/80"
           >
             <Upload className="w-3.5 h-3.5" />
-            <span>Import CSV</span>
+            <span>Import / Restore</span>
           </button>
           <button
             onClick={exportCSV}
             className="flex items-center gap-2 px-3.5 py-2 bg-secondary/50 hover:bg-secondary text-foreground border border-border rounded-xl text-xs font-semibold transition-all duration-150 cursor-pointer active:scale-95 hover:border-border/80"
+            title="Export trades spreadsheet (.csv)"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Export CSV</span>
+          </button>
+          <button
+            onClick={exportBackupJSON}
+            className="flex items-center gap-2 px-3.5 py-2 bg-primary/15 hover:bg-primary/25 text-primary border border-primary/40 hover:border-primary/70 rounded-xl text-xs font-bold shadow-xs transition-all duration-150 cursor-pointer active:scale-95 hover:shadow-[0_0_12px_rgba(56,189,248,0.25)]"
+            title="Download Complete Backup with all chart screenshots (.json)"
+          >
+            <Archive className="w-3.5 h-3.5" />
+            <span>Backup All (with Images)</span>
           </button>
         </div>
       </div>
