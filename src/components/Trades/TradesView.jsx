@@ -221,7 +221,7 @@ export const TradesView = () => {
       </div>
 
       {/* Filters Toolbar */}
-      <div className="rounded-xl border border-border bg-card/70 backdrop-blur-sm p-4 flex flex-wrap items-center gap-2.5 animate-rise shadow-xs">
+      <div className="relative z-30 rounded-xl border border-border bg-card/70 backdrop-blur-sm p-4 flex flex-wrap items-center gap-2.5 shadow-xs">
         {/* Status Pills */}
         <div className="flex items-center bg-secondary/40 p-1 rounded-xl border border-border">
           {['ALL', 'OPEN', 'CLOSED'].map((st) => (

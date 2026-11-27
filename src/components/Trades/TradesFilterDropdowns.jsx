@@ -23,7 +23,7 @@ export const CustomPairFilter = ({ value, onChange, uniquePairs = [], trades = [
   const [search, setSearch] = useState('');
   const dropdownRef = useRef(null);
 
-  // Close on outside click
+  // Close on outside click (supports both mouse and touch events)
   useEffect(() => {
     const handleOutsideClick = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -32,8 +32,12 @@ export const CustomPairFilter = ({ value, onChange, uniquePairs = [], trades = [
     };
     if (isOpen) {
       document.addEventListener('mousedown', handleOutsideClick);
+      document.addEventListener('touchstart', handleOutsideClick);
     }
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('touchstart', handleOutsideClick);
+    };
   }, [isOpen]);
 
   // Pair trade count map
@@ -71,11 +75,14 @@ export const CustomPairFilter = ({ value, onChange, uniquePairs = [], trades = [
   const isAll = value === 'ALL';
 
   return (
-    <div className="relative inline-block text-left" ref={dropdownRef}>
+    <div className={`relative inline-block text-left ${isOpen ? 'z-50' : 'z-10'}`} ref={dropdownRef}>
       {/* Trigger Button */}
       <button
         type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsOpen((prev) => !prev);
+        }}
         className={`flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-xl border transition-all duration-150 cursor-pointer shadow-xs ${
           isAll
             ? 'bg-secondary/50 hover:bg-secondary text-foreground border-border hover:border-border/80'
@@ -91,8 +98,9 @@ export const CustomPairFilter = ({ value, onChange, uniquePairs = [], trades = [
             onClick={(e) => {
               e.stopPropagation();
               onChange('ALL');
+              setIsOpen(false);
             }}
-            className="hover:bg-primary/20 rounded p-0.5 ml-0.5 text-primary"
+            className="hover:bg-primary/20 rounded p-0.5 ml-0.5 text-primary cursor-pointer"
             title="Clear pair filter"
           >
             <X className="w-3 h-3" />
@@ -107,7 +115,7 @@ export const CustomPairFilter = ({ value, onChange, uniquePairs = [], trades = [
 
       {/* Floating Dark Dropdown Menu */}
       {isOpen && (
-        <div className="absolute left-0 mt-1.5 w-56 rounded-2xl border border-border/90 bg-card/95 backdrop-blur-xl shadow-2xl p-1.5 z-50 animate-rise">
+        <div className="absolute left-0 top-full mt-2 w-56 max-w-[calc(100vw-2rem)] rounded-2xl border border-border bg-[#0e1522] text-foreground shadow-[0_12px_36px_rgba(0,0,0,0.85)] p-2 z-50">
           {uniquePairs.length > 5 && (
             <div className="relative mb-1.5 px-1 pt-1">
               <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -126,7 +134,8 @@ export const CustomPairFilter = ({ value, onChange, uniquePairs = [], trades = [
             {/* All Pairs Option */}
             <button
               type="button"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 onChange('ALL');
                 setIsOpen(false);
               }}
@@ -156,7 +165,8 @@ export const CustomPairFilter = ({ value, onChange, uniquePairs = [], trades = [
                 <button
                   key={pair}
                   type="button"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     onChange(pair);
                     setIsOpen(false);
                   }}
@@ -196,7 +206,7 @@ export const CustomSessionFilter = ({ value, onChange, uniqueSessions = [], trad
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Close on outside click
+  // Close on outside click (supports both mouse and touch events)
   useEffect(() => {
     const handleOutsideClick = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -205,19 +215,26 @@ export const CustomSessionFilter = ({ value, onChange, uniqueSessions = [], trad
     };
     if (isOpen) {
       document.addEventListener('mousedown', handleOutsideClick);
+      document.addEventListener('touchstart', handleOutsideClick);
     }
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('touchstart', handleOutsideClick);
+    };
   }, [isOpen]);
 
   const isAll = value === 'ALL';
   const selectedConfig = isAll ? null : getSessionConfig(value);
 
   return (
-    <div className="relative inline-block text-left" ref={dropdownRef}>
+    <div className={`relative inline-block text-left ${isOpen ? 'z-50' : 'z-10'}`} ref={dropdownRef}>
       {/* Trigger Button */}
       <button
         type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsOpen((prev) => !prev);
+        }}
         className={`flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-xl border transition-all duration-150 cursor-pointer shadow-xs ${
           isAll
             ? 'bg-secondary/50 hover:bg-secondary text-foreground border-border hover:border-border/80'
@@ -235,8 +252,9 @@ export const CustomSessionFilter = ({ value, onChange, uniqueSessions = [], trad
             onClick={(e) => {
               e.stopPropagation();
               onChange('ALL');
+              setIsOpen(false);
             }}
-            className="hover:opacity-80 rounded p-0.5 ml-0.5"
+            className="hover:opacity-80 rounded p-0.5 ml-0.5 cursor-pointer"
             title="Clear session filter"
           >
             <X className="w-3 h-3" />
@@ -251,12 +269,13 @@ export const CustomSessionFilter = ({ value, onChange, uniqueSessions = [], trad
 
       {/* Floating Dark Dropdown Menu */}
       {isOpen && (
-        <div className="absolute left-0 mt-1.5 w-64 rounded-2xl border border-border/90 bg-card/95 backdrop-blur-xl shadow-2xl p-1.5 z-50 animate-rise">
+        <div className="absolute left-0 top-full mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-2xl border border-border bg-[#0e1522] text-foreground shadow-[0_12px_36px_rgba(0,0,0,0.85)] p-2 z-50">
           <div className="space-y-0.5">
             {/* All Sessions Option */}
             <button
               type="button"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 onChange('ALL');
                 setIsOpen(false);
               }}
@@ -280,7 +299,8 @@ export const CustomSessionFilter = ({ value, onChange, uniqueSessions = [], trad
                 <button
                   key={session.id}
                   type="button"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     onChange(session.id);
                     setIsOpen(false);
                   }}
@@ -375,7 +395,7 @@ export const CustomDatePickerFilter = ({ value, onChange, trades = [] }) => {
     return `${y}-${m}-${day}`;
   }, []);
 
-  // Close on outside click
+  // Close on outside click (supports both mouse and touch events)
   useEffect(() => {
     const handleOutsideClick = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
@@ -384,8 +404,12 @@ export const CustomDatePickerFilter = ({ value, onChange, trades = [] }) => {
     };
     if (isOpen) {
       document.addEventListener('mousedown', handleOutsideClick);
+      document.addEventListener('touchstart', handleOutsideClick);
     }
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+      document.removeEventListener('touchstart', handleOutsideClick);
+    };
   }, [isOpen]);
 
   // Calendar days generation
@@ -425,11 +449,14 @@ export const CustomDatePickerFilter = ({ value, onChange, trades = [] }) => {
   };
 
   return (
-    <div className="relative inline-block text-left" ref={dropdownRef}>
+    <div className={`relative inline-block text-left ${isOpen ? 'z-50' : 'z-10'}`} ref={dropdownRef}>
       {/* Trigger Button */}
       <button
         type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsOpen((prev) => !prev);
+        }}
         className={`flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-xl border transition-all duration-150 cursor-pointer shadow-xs ${
           value
             ? 'bg-primary/15 text-primary border-primary/40 hover:border-primary/70 shadow-[0_0_10px_rgba(56,189,248,0.2)]'
@@ -445,8 +472,9 @@ export const CustomDatePickerFilter = ({ value, onChange, trades = [] }) => {
             onClick={(e) => {
               e.stopPropagation();
               onChange('');
+              setIsOpen(false);
             }}
-            className="hover:bg-primary/20 rounded p-0.5 ml-0.5 text-primary"
+            className="hover:bg-primary/20 rounded p-0.5 ml-0.5 text-primary cursor-pointer"
             title="Clear date filter"
           >
             <X className="w-3 h-3" />
@@ -462,7 +490,7 @@ export const CustomDatePickerFilter = ({ value, onChange, trades = [] }) => {
 
       {/* Floating Dark Calendar Popover */}
       {isOpen && (
-        <div className="absolute left-0 mt-1.5 w-72 rounded-2xl border border-border/90 bg-card/95 backdrop-blur-xl shadow-2xl p-3.5 z-50 animate-rise">
+        <div className="absolute left-0 sm:left-auto sm:right-0 md:left-0 top-full mt-2 w-72 max-w-[calc(100vw-2rem)] rounded-2xl border border-border bg-[#0e1522] text-foreground shadow-[0_12px_36px_rgba(0,0,0,0.85)] p-3.5 z-50">
           {/* Header with Month / Year Navigation */}
           <div className="flex items-center justify-between mb-3 px-1">
             <span className="font-num font-bold text-xs text-foreground tracking-wide">
@@ -521,7 +549,10 @@ export const CustomDatePickerFilter = ({ value, onChange, trades = [] }) => {
                 <button
                   key={dayNum}
                   type="button"
-                  onClick={() => selectDate(dayNum)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    selectDate(dayNum);
+                  }}
                   className={`relative h-8 rounded-lg text-xs font-num font-semibold transition cursor-pointer flex flex-col items-center justify-center ${
                     isSelected
                       ? 'bg-primary text-primary-foreground font-bold shadow-xs'
@@ -547,7 +578,8 @@ export const CustomDatePickerFilter = ({ value, onChange, trades = [] }) => {
           <div className="flex items-center justify-between gap-1.5 pt-3 mt-3 border-t border-border/70">
             <button
               type="button"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 onChange(todayStr);
                 setIsOpen(false);
               }}
@@ -557,7 +589,8 @@ export const CustomDatePickerFilter = ({ value, onChange, trades = [] }) => {
             </button>
             <button
               type="button"
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 onChange(yesterdayStr);
                 setIsOpen(false);
               }}
@@ -568,7 +601,8 @@ export const CustomDatePickerFilter = ({ value, onChange, trades = [] }) => {
             {value && (
               <button
                 type="button"
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   onChange('');
                   setIsOpen(false);
                 }}
