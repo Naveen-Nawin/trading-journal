@@ -27,11 +27,18 @@ import {
 } from '../../utils/formatters';
 import { getSessionConfig } from '../../utils/sessionConfig';
 import { getEffectiveTradePips, getEffectiveTradeRR } from '../../utils/pipsAndRR';
+import {
+  CustomPairFilter,
+  CustomSessionFilter,
+  CustomDatePickerFilter,
+  TodayFilterButton,
+} from './TradesFilterDropdowns';
 
 export const TradesView = () => {
   const {
     trades,
     currency,
+    todayTradesCount,
     setTradeToClose,
     setTradeToEdit,
     setTradeToDelete,
@@ -91,7 +98,7 @@ export const TradesView = () => {
       if (sessionFilter !== 'ALL' && trade.session !== sessionFilter) return false;
 
       // Date
-      if (dateFilter && trade.date !== dateFilter) return false;
+      if (dateFilter && String(trade.date || '').slice(0, 10) !== dateFilter) return false;
 
       // Search Query in notes, pair, or setupTag
       if (searchQuery.trim()) {
@@ -185,7 +192,7 @@ export const TradesView = () => {
       </div>
 
       {/* Filters Toolbar */}
-      <div className="rounded-xl border border-border bg-card/70 backdrop-blur-sm p-4 flex flex-wrap items-center gap-3 animate-rise shadow-xs">
+      <div className="rounded-xl border border-border bg-card/70 backdrop-blur-sm p-4 flex flex-wrap items-center gap-2.5 animate-rise shadow-xs">
         {/* Status Pills */}
         <div className="flex items-center bg-secondary/40 p-1 rounded-xl border border-border">
           {['ALL', 'OPEN', 'CLOSED'].map((st) => (
@@ -203,55 +210,58 @@ export const TradesView = () => {
           ))}
         </div>
 
-        {/* Pair Dropdown */}
-        <div className="relative">
-          <select
-            value={pairFilter}
-            onChange={(e) => setPairFilter(e.target.value)}
-            className="bg-secondary/40 text-xs font-num text-foreground border border-border rounded-xl px-3 py-2 focus:outline-hidden focus:border-primary cursor-pointer"
-          >
-            <option value="ALL">All pairs</option>
-            {uniquePairs.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* 1-Click Direct "Today" Trades Filter Button */}
+        <TodayFilterButton
+          dateFilter={dateFilter}
+          onToggle={setDateFilter}
+          todayTradesCount={todayTradesCount}
+        />
 
-        {/* Session Dropdown */}
-        <div className="relative">
-          <select
-            value={sessionFilter}
-            onChange={(e) => setSessionFilter(e.target.value)}
-            className="bg-secondary/40 text-xs text-foreground border border-border rounded-xl px-3 py-2 focus:outline-hidden focus:border-primary cursor-pointer"
-          >
-            <option value="ALL">All sessions</option>
-            {uniqueSessions.map((s) => (
-              <option key={s} value={s}>
-                {s}
-              </option>
-            ))}
-          </select>
-        </div>
+        {/* Custom Dark Pair Dropdown */}
+        <CustomPairFilter
+          value={pairFilter}
+          onChange={setPairFilter}
+          uniquePairs={uniquePairs}
+          trades={trades}
+        />
 
-        {/* Date Filter */}
-        <div className="flex items-center gap-1 bg-secondary/40 border border-border rounded-xl px-3 py-1.5">
-          <input
-            type="date"
-            value={dateFilter}
-            onChange={(e) => setDateFilter(e.target.value)}
-            className="bg-transparent text-xs text-foreground font-num focus:outline-hidden"
-          />
-          {dateFilter && (
-            <button
-              onClick={() => setDateFilter('')}
-              className="text-muted-foreground hover:text-foreground text-xs ml-1 cursor-pointer"
-            >
-              ×
-            </button>
-          )}
-        </div>
+        {/* Custom Dark Session Dropdown */}
+        <CustomSessionFilter
+          value={sessionFilter}
+          onChange={setSessionFilter}
+          uniqueSessions={uniqueSessions}
+          trades={trades}
+        />
+
+        {/* Custom Dark Date Picker */}
+        <CustomDatePickerFilter
+          value={dateFilter}
+          onChange={setDateFilter}
+          trades={trades}
+        />
+
+        {/* Clear All Active Filters (if any filter is active) */}
+        {(statusFilter !== 'ALL' ||
+          pairFilter !== 'ALL' ||
+          sessionFilter !== 'ALL' ||
+          dateFilter ||
+          searchQuery) && (
+          <button
+            type="button"
+            onClick={() => {
+              setStatusFilter('ALL');
+              setPairFilter('ALL');
+              setSessionFilter('ALL');
+              setDateFilter('');
+              setSearchQuery('');
+            }}
+            className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold text-loss hover:bg-loss/15 border border-loss/30 rounded-xl transition cursor-pointer"
+            title="Clear all active filters"
+          >
+            <X className="w-3 h-3" />
+            <span>Reset</span>
+          </button>
+        )}
 
         {/* Search Notes */}
         <div className="flex-1 min-w-[200px] relative">
