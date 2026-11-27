@@ -221,16 +221,17 @@ app.post('/api/trades', requireAuth, (req, res) => {
   }
 });
 
-// Batch create trades (for OCR Screenshot Import / CSV Import)
+// Batch create or import trades (with cross-user ID collision isolation & de-duplication)
 app.post('/api/trades/batch', requireAuth, (req, res) => {
   try {
-    const { trades } = req.body;
+    const { trades, mode = 'append' } = req.body;
     if (!Array.isArray(trades) || trades.length === 0) {
       return res.status(400).json({ error: 'An array of trades is required.' });
     }
 
+    const checkExistingOwner = db.prepare('SELECT user_id FROM trades WHERE id = ?');
     const stmt = db.prepare(`
-      INSERT INTO trades (
+      INSERT OR REPLACE INTO trades (
         id, user_id, pair, direction, lots, entry_price, exit_price,
         stop_loss, take_profit, pnl, pips, r_multiple, date, time,
         session, status, setup_tag, tags_json, emotion, notes,
@@ -239,15 +240,25 @@ app.post('/api/trades/batch', requireAuth, (req, res) => {
     `);
 
     const insertMany = db.transaction((list) => {
+      if (mode === 'replace') {
+        db.prepare('DELETE FROM trades WHERE user_id = ?').run(req.user.id);
+      }
       for (const t of list) {
-        const tradeId = t.id && !t.id.startsWith('ocr-') && !t.id.startsWith('sample-')
-          ? t.id
-          : `tr_${randomUUID()}`;
+        // If trade ID belongs to another user (e.g. Account A import into Account B) or is invalid/sample, generate a brand new unique ID
+        let tradeId = t.id;
+        if (!tradeId || tradeId.startsWith('ocr-') || tradeId.startsWith('sample-') || tradeId.startsWith('tr-import-')) {
+          tradeId = `tr_${randomUUID()}`;
+        } else {
+          const owner = checkExistingOwner.get(tradeId);
+          if (owner && owner.user_id !== req.user.id) {
+            tradeId = `tr_${randomUUID()}`;
+          }
+        }
 
         stmt.run(
           tradeId,
           req.user.id,
-          (t.pair || '').toUpperCase(),
+          (t.pair || 'XAUUSD').toUpperCase().replace(/[/\-_ ]/g, '') || 'XAUUSD',
           (t.direction || 'BUY').toUpperCase(),
           parseFloat(t.lots) || 0.1,
           parseFloat(t.entryPrice) || 0,
@@ -281,7 +292,93 @@ app.post('/api/trades/batch', requireAuth, (req, res) => {
     });
   } catch (err) {
     console.error('Batch trades error:', err);
-    res.status(500).json({ error: 'Failed to batch import trades.' });
+    res.status(500).json({ error: 'Failed to batch import trades: ' + err.message });
+  }
+});
+
+// Atomic Restore endpoint (Restores Account A backup into Account B with clean ID mapping and transaction safety)
+app.post('/api/trades/restore', requireAuth, (req, res) => {
+  try {
+    const { trades = [], rules = [], mode = 'replace' } = req.body;
+    if (!Array.isArray(trades)) {
+      return res.status(400).json({ error: 'Trades array is required for restore.' });
+    }
+
+    const restoreTx = db.transaction((tradeList, ruleList) => {
+      // 1. If replace mode, cleanly wipe current account's existing records
+      if (mode === 'replace') {
+        db.prepare('DELETE FROM trades WHERE user_id = ?').run(req.user.id);
+        if (Array.isArray(ruleList) && ruleList.length > 0) {
+          db.prepare('DELETE FROM rules WHERE user_id = ?').run(req.user.id);
+        }
+      }
+
+      // 2. Insert restored trades with guaranteed-isolated unique IDs for target user
+      const insertTrade = db.prepare(`
+        INSERT INTO trades (
+          id, user_id, pair, direction, lots, entry_price, exit_price,
+          stop_loss, take_profit, pnl, pips, r_multiple, date, time,
+          session, status, setup_tag, tags_json, emotion, notes,
+          screenshot, followed_plan
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      for (const t of tradeList) {
+        const tradeId = `tr_${randomUUID()}`;
+        insertTrade.run(
+          tradeId,
+          req.user.id,
+          (t.pair || 'XAUUSD').toUpperCase().replace(/[/\-_ ]/g, '') || 'XAUUSD',
+          (t.direction || 'BUY').toUpperCase(),
+          parseFloat(t.lots) || 0.1,
+          parseFloat(t.entryPrice) || 0,
+          t.exitPrice !== null && t.exitPrice !== undefined && t.exitPrice !== '' ? parseFloat(t.exitPrice) : null,
+          t.stopLoss ? parseFloat(t.stopLoss) : null,
+          t.takeProfit ? parseFloat(t.takeProfit) : null,
+          t.pnl !== null && t.pnl !== undefined && t.pnl !== '' ? parseFloat(t.pnl) : null,
+          t.pips !== null && t.pips !== undefined ? parseFloat(t.pips) : null,
+          t.rMultiple !== null && t.rMultiple !== undefined ? parseFloat(t.rMultiple) : null,
+          t.date || new Date().toISOString().split('T')[0],
+          t.time || '',
+          t.session || 'London',
+          t.status || 'CLOSED',
+          t.setupTag || 'general',
+          JSON.stringify(t.tags || []),
+          t.emotion || 'calm',
+          t.notes || '',
+          t.screenshot || '',
+          t.followedPlan ? 1 : 0
+        );
+      }
+
+      // 3. Restore rules if provided
+      if (Array.isArray(ruleList) && ruleList.length > 0) {
+        const insertRule = db.prepare('INSERT INTO rules (id, user_id, num, text, active) VALUES (?, ?, ?, ?, ?)');
+        ruleList.forEach((r, idx) => {
+          insertRule.run(
+            `rule_${randomUUID()}`,
+            req.user.id,
+            r.num || String(idx + 1).padStart(2, '0'),
+            r.text || '',
+            r.active !== false ? 1 : 0
+          );
+        });
+      }
+    });
+
+    restoreTx(trades, rules);
+
+    const allTrades = db.prepare('SELECT * FROM trades WHERE user_id = ? ORDER BY date DESC, time DESC, created_at DESC').all(req.user.id);
+    const allRules = db.prepare('SELECT * FROM rules WHERE user_id = ? ORDER BY num ASC').all(req.user.id);
+
+    return res.status(200).json({
+      message: `Successfully restored ${trades.length} trades and ${rules.length} rules!`,
+      trades: allTrades.map(mapTradeFromDb),
+      rules: allRules.map((r) => ({ id: r.id, num: r.num, text: r.text, active: Boolean(r.active) })),
+    });
+  } catch (err) {
+    console.error('Restore error:', err);
+    return res.status(500).json({ error: 'Failed to restore trades: ' + err.message });
   }
 });
 

@@ -8,6 +8,12 @@ import { useAuth } from './AuthContext';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { playWarningTone, playHeavyWarningSound } from '../utils/audioAlerts';
 import { getEffectiveTradePips, getEffectiveTradeRR } from '../utils/pipsAndRR';
+import { serializeTradesToCSV, parseTradesFromCSV } from '../utils/csvHelper';
+import {
+  validateBackupJSON,
+  deduplicateTrades,
+  createFullBackupData,
+} from '../utils/backupHelper';
 
 export const AVAILABLE_THEMES = [
   {
@@ -886,21 +892,7 @@ export const TradingProvider = ({ children }) => {
   };
 
   const exportCSV = () => {
-    const headers = [
-      'id', 'pair', 'direction', 'session', 'lots', 'entryPrice', 'exitPrice',
-      'stopLoss', 'takeProfit', 'pnl', 'rMultiple', 'pips', 'date', 'status',
-      'setupTag', 'followedPlan', 'notes',
-    ];
-
-    const rows = trades.map((t) => [
-      t.id, t.pair, t.direction, t.session, t.lots,
-      t.entryPrice ?? '', t.exitPrice ?? '', t.stopLoss ?? '', t.takeProfit ?? '',
-      t.pnl ?? '', t.rMultiple ?? '', t.pips ?? '', t.date, t.status,
-      t.setupTag ?? '', t.followedPlan ? 'yes' : 'no',
-      `"${(t.notes || '').replace(/"/g, '""')}"`,
-    ]);
-
-    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const csvContent = serializeTradesToCSV(trades);
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -913,12 +905,7 @@ export const TradingProvider = ({ children }) => {
   };
 
   const exportBackupJSON = () => {
-    const backupData = {
-      version: '1.0',
-      exportedAt: new Date().toISOString(),
-      tradesCount: trades.length,
-      trades: trades,
-    };
+    const backupData = createFullBackupData(trades, rules, currency, theme);
     const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -930,9 +917,130 @@ export const TradingProvider = ({ children }) => {
     URL.revokeObjectURL(url);
   };
 
-  const importTrades = async (importedList) => {
+  const restoreBackup = async ({ trades: incomingTrades = [], rules: incomingRules = [], settings = {}, mode = 'replace' }) => {
+    if (!Array.isArray(incomingTrades)) return { success: false, count: 0, error: 'Invalid trades payload' };
+
+    // 1. Prepare trades: generate new unique IDs for target account so Account A's IDs never collide
+    const preparedTrades = prepareTradesForAccount(incomingTrades, user?.id, { generateNewIds: true })
+      .map(sanitizeTradeData);
+
+    let finalTrades = [];
+    let duplicatesSkipped = 0;
+
+    if (mode === 'replace') {
+      finalTrades = [...preparedTrades].sort(compareTradesDescending);
+      setTrades(finalTrades);
+
+      if (Array.isArray(incomingRules) && incomingRules.length > 0) {
+        setRules(incomingRules);
+      }
+
+      if (settings?.currency) {
+        setCurrency(settings.currency);
+        try { localStorage.setItem('pipdesk_currency_v1', settings.currency); } catch {}
+      }
+
+      // Update local cache
+      if (user?.id) {
+        try {
+          localStorage.setItem(`pipdesk_trades_${user.id}`, JSON.stringify(finalTrades));
+        } catch (e) {
+          console.warn('Failed to cache trades to localStorage:', e);
+        }
+      }
+
+      // Sync to Supabase if configured
+      if (isSupabaseConfigured && user?.id) {
+        try {
+          await supabase.from('trades').delete().eq('user_id', user.id);
+          const rows = finalTrades.map((t) => tradeToDb(t, user.id));
+          if (rows.length > 0) {
+            await supabase.from('trades').insert(rows);
+          }
+          if (Array.isArray(incomingRules) && incomingRules.length > 0) {
+            await supabase.from('rules').delete().eq('user_id', user.id);
+            const ruleRows = incomingRules.map((r, idx) => ({
+              id: `rule-${Date.now()}-${idx}`,
+              user_id: user.id,
+              num: r.num || String(idx + 1).padStart(2, '0'),
+              text: r.text || '',
+              active: r.active !== false,
+            }));
+            await supabase.from('rules').insert(ruleRows);
+          }
+        } catch (err) {
+          console.warn('Supabase restore failed:', err);
+        }
+      } else if (token) {
+        try {
+          await fetch('/api/trades/restore', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+              trades: finalTrades,
+              rules: incomingRules,
+              mode: 'replace',
+            }),
+          });
+        } catch (err) {
+          console.warn('Backend restore failed:', err);
+        }
+      }
+    } else {
+      // Append / Merge mode
+      const dedupe = deduplicateTrades(trades, preparedTrades);
+      duplicatesSkipped = dedupe.duplicatesSkipped;
+      finalTrades = [...dedupe.uniqueTrades, ...trades].sort(compareTradesDescending);
+      setTrades(finalTrades);
+
+      if (user?.id) {
+        try {
+          localStorage.setItem(`pipdesk_trades_${user.id}`, JSON.stringify(finalTrades));
+        } catch (e) {
+          console.warn('Failed to cache trades to localStorage:', e);
+        }
+      }
+
+      if (dedupe.uniqueTrades.length > 0) {
+        if (isSupabaseConfigured && user?.id) {
+          try {
+            const rows = dedupe.uniqueTrades.map((t) => tradeToDb(t, user.id));
+            await supabase.from('trades').insert(rows);
+          } catch (err) {
+            console.warn('Supabase append failed:', err);
+          }
+        } else if (token) {
+          try {
+            await fetch('/api/trades/batch', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ trades: dedupe.uniqueTrades }),
+            });
+          } catch (err) {
+            console.warn('Backend batch import failed:', err);
+          }
+        }
+      }
+    }
+
+    return {
+      success: true,
+      count: mode === 'replace' ? finalTrades.length : (finalTrades.length - trades.length),
+      totalCount: finalTrades.length,
+      duplicatesSkipped,
+    };
+  };
+
+  const importTrades = async (importedList, mode = 'replace') => {
     if (!Array.isArray(importedList) || importedList.length === 0) return 0;
-    return await logMultipleTrades(importedList);
+    const res = await restoreBackup({ trades: importedList, rules: [], mode });
+    return res.count;
   };
 
   return (
@@ -978,6 +1086,7 @@ export const TradingProvider = ({ children }) => {
         exportCSV,
         exportBackupJSON,
         importTrades,
+        restoreBackup,
         lightbox,
         setLightbox,
         loadSampleTrades,
