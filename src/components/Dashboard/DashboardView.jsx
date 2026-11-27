@@ -164,14 +164,42 @@ export const DashboardView = () => {
           className="animate-rise rounded-xl border border-border p-4 md:p-5 bg-card/70 backdrop-blur-sm transition-colors duration-200 hover:border-muted-foreground/30 shadow-xs"
           style={{ animationDelay: '60ms' }}
         >
-          <p className="text-[10px] md:text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
-            WIN RATE
-          </p>
-          <p className="font-num font-bold text-xl md:text-2xl mt-2 tracking-tight text-white">
-            {stats.winRate.toFixed(1)}%
-          </p>
-          <p className="text-[11px] text-muted-foreground mt-1.5 font-num">
-            avg win {formatCurrencyRaw(stats.avgWin, currency, false)}
+          <div className="flex items-center justify-between">
+            <p className="text-[10px] md:text-[11px] uppercase tracking-[0.16em] text-muted-foreground">
+              WIN RATE
+            </p>
+            <span className="text-[10px] md:text-[11px] font-mono px-2 py-0.5 rounded-md bg-secondary/80 text-foreground border border-border/80 font-bold">
+              {stats.closedCount} {stats.closedCount === 1 ? 'Trade' : 'Trades'}
+            </span>
+          </div>
+
+          <div className="flex items-baseline flex-wrap gap-2 md:gap-2.5 mt-2">
+            <p className="font-num font-bold text-xl md:text-2xl tracking-tight text-white">
+              {stats.winRate.toFixed(1)}%
+            </p>
+            <div className="flex items-center gap-1.5 font-num text-[11px] md:text-xs font-bold">
+              <span
+                className="inline-flex items-center gap-1 text-profit bg-profit/15 border border-profit/30 px-1.5 md:px-2 py-0.5 rounded-md"
+                title="Winning Trades"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-profit"></span>
+                <span>{stats.winCount} Won</span>
+              </span>
+              <span
+                className="inline-flex items-center gap-1 text-loss bg-loss/15 border border-loss/30 px-1.5 md:px-2 py-0.5 rounded-md"
+                title="Losing Trades"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-loss"></span>
+                <span>{stats.lossCount} Lost</span>
+              </span>
+            </div>
+          </div>
+
+          <p className="text-[11px] text-muted-foreground mt-1.5 font-num flex items-center justify-between">
+            <span>avg win {formatCurrencyRaw(stats.avgWin, currency, false)}</span>
+            {stats.openCount > 0 && (
+              <span className="text-primary font-medium">({stats.openCount} open)</span>
+            )}
           </p>
         </div>
 
