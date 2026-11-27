@@ -15,6 +15,7 @@ import {
   Sparkles,
   Clock,
   Archive,
+  X,
 } from 'lucide-react';
 import { useTrading } from '../../context/TradingContext';
 import {
@@ -92,13 +93,41 @@ export const TradesView = () => {
       if (statusFilter === 'CLOSED' && trade.status !== 'CLOSED') return false;
 
       // Pair
-      if (pairFilter !== 'ALL' && trade.pair !== pairFilter) return false;
+      if (pairFilter !== 'ALL') {
+        const normFilter = (pairFilter || '').toUpperCase().replace(/[/\-_ ]/g, '');
+        const normTradePair = (trade.pair || '').toUpperCase().replace(/[/\-_ ]/g, '');
+        if (normTradePair !== normFilter) return false;
+      }
 
       // Session
-      if (sessionFilter !== 'ALL' && trade.session !== sessionFilter) return false;
+      if (sessionFilter !== 'ALL') {
+        const filterConfig = getSessionConfig(sessionFilter);
+        const tradeConfig = getSessionConfig(trade.session);
+        if (filterConfig.id !== tradeConfig.id) {
+          const f = sessionFilter.toLowerCase();
+          const t = (trade.session || '').toLowerCase();
+          if (!t.includes(f) && !f.includes(t)) return false;
+        }
+      }
 
       // Date
-      if (dateFilter && String(trade.date || '').slice(0, 10) !== dateFilter) return false;
+      if (dateFilter) {
+        const rawDate = trade.date || trade.opened_at || (trade.closed_at ? trade.closed_at.slice(0, 10) : '');
+        if (!rawDate) return false;
+        const rawStr = String(rawDate);
+        const datePrefix = rawStr.slice(0, 10);
+        if (datePrefix !== dateFilter) {
+          const d = new Date(rawDate);
+          if (!isNaN(d.getTime())) {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            if (`${y}-${m}-${day}` !== dateFilter) return false;
+          } else {
+            return false;
+          }
+        }
+      }
 
       // Search Query in notes, pair, or setupTag
       if (searchQuery.trim()) {

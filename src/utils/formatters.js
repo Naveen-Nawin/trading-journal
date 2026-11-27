@@ -77,7 +77,14 @@ export const formatPips = (pips) => {
 
 export const formatDateDisplay = (dateStr) => {
   if (!dateStr) return '';
-  const date = new Date(dateStr);
+  // Avoid UTC timezone shift when parsing YYYY-MM-DD strings
+  let date;
+  if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    date = new Date(y, m - 1, d);
+  } else {
+    date = new Date(dateStr);
+  }
   if (isNaN(date.getTime())) return dateStr;
 
   const day = String(date.getDate()).padStart(2, '0');

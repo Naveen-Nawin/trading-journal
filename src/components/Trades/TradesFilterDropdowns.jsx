@@ -40,16 +40,33 @@ export const CustomPairFilter = ({ value, onChange, uniquePairs = [], trades = [
   const pairCountMap = useMemo(() => {
     const counts = {};
     trades.forEach((t) => {
-      const p = (t.pair || '').toUpperCase();
+      const p = (t.pair || '').toUpperCase().trim();
       if (p) counts[p] = (counts[p] || 0) + 1;
     });
     return counts;
   }, [trades]);
 
+  // Combine unique pairs logged in trades with common popular pairs
+  const POPULAR_PAIRS = ['XAUUSD', 'EURUSD', 'GBPUSD', 'US100', 'US30', 'BTCUSD', 'USDJPY', 'NAS100'];
+
+  const allDisplayPairs = useMemo(() => {
+    const set = new Set([...uniquePairs, ...POPULAR_PAIRS]);
+    return Array.from(set).sort((a, b) => {
+      const countA = pairCountMap[a] || 0;
+      const countB = pairCountMap[b] || 0;
+      if (countA > 0 && countB === 0) return -1;
+      if (countB > 0 && countA === 0) return 1;
+      return a.localeCompare(b);
+    });
+  }, [uniquePairs, pairCountMap]);
+
   const filteredPairs = useMemo(() => {
-    if (!search.trim()) return uniquePairs;
-    return uniquePairs.filter((p) => p.toLowerCase().includes(search.toLowerCase()));
-  }, [uniquePairs, search]);
+    if (!search.trim()) return allDisplayPairs;
+    const q = search.toLowerCase().replace(/[/\-_ ]/g, '');
+    return allDisplayPairs.filter((p) =>
+      p.toLowerCase().replace(/[/\-_ ]/g, '').includes(q)
+    );
+  }, [allDisplayPairs, search]);
 
   const isAll = value === 'ALL';
 
@@ -301,16 +318,39 @@ export const CustomDatePickerFilter = ({ value, onChange, trades = [] }) => {
   const dropdownRef = useRef(null);
 
   // Month state for navigating calendar
-  const initialDate = value ? new Date(value) : new Date();
+  const initialDate = value ? new Date(value.replace(/-/g, '/')) : new Date();
   const [viewYear, setViewYear] = useState(initialDate.getFullYear());
   const [viewMonth, setViewMonth] = useState(initialDate.getMonth()); // 0-11
+
+  // Keep view year & month synced when value changes externally (e.g. via Today button or Clear)
+  useEffect(() => {
+    if (value && typeof value === 'string') {
+      const parts = value.split('-');
+      if (parts.length === 3) {
+        const y = parseInt(parts[0], 10);
+        const m = parseInt(parts[1], 10) - 1;
+        if (!isNaN(y) && !isNaN(m)) {
+          setViewYear(y);
+          setViewMonth(m);
+        }
+      }
+    }
+  }, [value]);
 
   // Set of dates that have trades for dot indicators
   const tradeDatesSet = useMemo(() => {
     const set = new Set();
     trades.forEach((t) => {
-      if (t.date) {
-        set.add(String(t.date).slice(0, 10));
+      const raw = t.date || t.opened_at || (t.closed_at ? t.closed_at.slice(0, 10) : '');
+      if (raw) {
+        set.add(String(raw).slice(0, 10));
+        const d = new Date(raw);
+        if (!isNaN(d.getTime())) {
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          const day = String(d.getDate()).padStart(2, '0');
+          set.add(`${y}-${m}-${day}`);
+        }
       }
     });
     return set;
