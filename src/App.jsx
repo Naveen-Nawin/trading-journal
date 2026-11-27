@@ -29,6 +29,7 @@ export function AppContent() {
     todayTradesCount,
     isDailyLocked,
     isDailyWarning,
+    isExemptFromDailyLimit,
     triggerDisciplineAlert,
   } = useTrading();
   const { isAuthenticated, isLoading } = useAuth();
@@ -91,10 +92,10 @@ export function AppContent() {
                   ? 'bg-amber-500/20 text-amber-400 border border-amber-500/40 animate-pulse'
                   : 'bg-secondary/60 text-muted-foreground border border-border'
               }`}
-              title="Daily Trades Counter (Max 5)"
+              title={isExemptFromDailyLimit ? "Today's Trades" : "Daily Trades Counter (Max 5)"}
             >
               {isDailyLocked ? <Lock className="w-2.5 h-2.5" /> : isDailyWarning ? <AlertTriangle className="w-2.5 h-2.5" /> : null}
-              <span>{todayTradesCount}/5</span>
+              <span>{todayTradesCount}{isExemptFromDailyLimit ? ' trades today' : '/5'}</span>
             </button>
           )}
 
@@ -173,7 +174,7 @@ export function AppContent() {
         ) : (
           <>
             <Plus className="w-4 h-4 stroke-[2.5]" />
-            <span>Log Trade {todayTradesCount > 0 ? `(${todayTradesCount}/5)` : ''}</span>
+            <span>Log Trade {todayTradesCount > 0 ? (isExemptFromDailyLimit ? `(${todayTradesCount})` : `(${todayTradesCount}/5)`) : ''}</span>
           </>
         )}
       </button>

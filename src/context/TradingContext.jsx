@@ -442,6 +442,22 @@ export const TradingProvider = ({ children }) => {
   const stats = useMemo(() => calculateStats(trades), [trades]);
 
   // Discipline & Overtrading Protection: minimum 3 trades warning, 5 trades lock
+  // knr4ul@gmail.com is granted an exemption from the daily 5-trade limit
+  const isExemptFromDailyLimit = useMemo(() => {
+    const userEmail = (user?.email || '').toLowerCase().trim();
+    if (userEmail === 'knr4ul@gmail.com') return true;
+    try {
+      const savedUserStr = localStorage.getItem('pipdesk_user_obj');
+      if (savedUserStr) {
+        const saved = JSON.parse(savedUserStr);
+        if ((saved?.email || '').toLowerCase().trim() === 'knr4ul@gmail.com') {
+          return true;
+        }
+      }
+    } catch {}
+    return false;
+  }, [user?.email]);
+
   const todayDateStr = useMemo(() => {
     const d = new Date();
     const year = d.getFullYear();
@@ -458,8 +474,8 @@ export const TradingProvider = ({ children }) => {
   }, [trades, todayDateStr]);
 
   const todayTradesCount = todayTrades.length;
-  const isDailyLocked = todayTradesCount >= 5;
-  const isDailyWarning = todayTradesCount >= 3 && todayTradesCount < 5;
+  const isDailyLocked = isExemptFromDailyLimit ? false : todayTradesCount >= 5;
+  const isDailyWarning = isExemptFromDailyLimit ? false : (todayTradesCount >= 3 && todayTradesCount < 5);
 
   const [disciplineAlert, setDisciplineAlert] = useState({
     isOpen: false,
@@ -473,6 +489,7 @@ export const TradingProvider = ({ children }) => {
   };
 
   const triggerDisciplineAlert = (type, count) => {
+    if (isExemptFromDailyLimit) return;
     if (type === 'lock') {
       playHeavyWarningSound();
       setDisciplineAlert({
@@ -509,7 +526,7 @@ export const TradingProvider = ({ children }) => {
   // Actions
   const logTrade = async (newTrade) => {
     // Check if daily limit reached
-    if (todayTradesCount >= 5) {
+    if (!isExemptFromDailyLimit && todayTradesCount >= 5) {
       triggerDisciplineAlert('lock', todayTradesCount);
       return false;
     }
@@ -522,18 +539,20 @@ export const TradingProvider = ({ children }) => {
     setTrades((prev) => [tradeWithId, ...prev].sort(compareTradesDescending));
 
     // Check trade count for today
-    const tradeDateVal = tradeWithId.date || tradeWithId.opened_at || (tradeWithId.closed_at ? tradeWithId.closed_at.slice(0, 10) : '');
-    const isTodayTrade = !tradeDateVal || tradeDateVal.slice(0, 10) === todayDateStr;
-    const newCount = isTodayTrade ? todayTradesCount + 1 : todayTradesCount;
+    if (!isExemptFromDailyLimit) {
+      const tradeDateVal = tradeWithId.date || tradeWithId.opened_at || (tradeWithId.closed_at ? tradeWithId.closed_at.slice(0, 10) : '');
+      const isTodayTrade = !tradeDateVal || tradeDateVal.slice(0, 10) === todayDateStr;
+      const newCount = isTodayTrade ? todayTradesCount + 1 : todayTradesCount;
 
-    if (newCount >= 5) {
-      setTimeout(() => {
-        triggerDisciplineAlert('lock', newCount);
-      }, 350);
-    } else if (newCount >= 3) {
-      setTimeout(() => {
-        triggerDisciplineAlert('warning', newCount);
-      }, 350);
+      if (newCount >= 5) {
+        setTimeout(() => {
+          triggerDisciplineAlert('lock', newCount);
+        }, 350);
+      } else if (newCount >= 3) {
+        setTimeout(() => {
+          triggerDisciplineAlert('warning', newCount);
+        }, 350);
+      }
     }
 
     if (isSupabaseConfigured && user?.id) {
@@ -1094,6 +1113,7 @@ export const TradingProvider = ({ children }) => {
         todayTradesCount,
         isDailyLocked,
         isDailyWarning,
+        isExemptFromDailyLimit,
         disciplineAlert,
         triggerDisciplineAlert,
         dismissDisciplineAlert,
