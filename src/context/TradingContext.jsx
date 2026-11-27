@@ -211,10 +211,23 @@ export const TradingProvider = ({ children }) => {
       });
   }, []);
 
-  const { token, user } = useAuth();
+  const { token, user, isLoading: isAuthLoading } = useAuth();
 
-  // Load user trades (starts empty until user authenticates)
-  const [trades, setTrades] = useState([]);
+  // Load user trades (preloaded instantly from local cache so there is NO empty flash on refresh)
+  const [trades, setTrades] = useState(() => {
+    try {
+      const savedUserStr = localStorage.getItem('pipdesk_user_obj');
+      const savedUser = savedUserStr ? JSON.parse(savedUserStr) : null;
+      if (savedUser?.id) {
+        const cached = localStorage.getItem(`pipdesk_trades_${savedUser.id}`);
+        if (cached) {
+          return safeLoadSaved(cached);
+        }
+      }
+    } catch (e) {}
+    return [];
+  });
+  const [isTradesLoading, setIsTradesLoading] = useState(true);
   const [rules, setRules] = useState(initialRules);
   const [lightbox, setLightbox] = useState(null);
 
@@ -252,8 +265,11 @@ export const TradingProvider = ({ children }) => {
   // Load trades and rules from Supabase Cloud DB or local fallback
   useEffect(() => {
     if (!user) {
-      setTrades([]);
-      setRules(initialRules);
+      if (!isAuthLoading) {
+        setTrades([]);
+        setRules(initialRules);
+        setIsTradesLoading(false);
+      }
       return;
     }
 
@@ -314,6 +330,8 @@ export const TradingProvider = ({ children }) => {
           console.warn('Supabase fetch failed, fallback to local cache:', err);
           const saved = localStorage.getItem(`pipdesk_trades_${user.id}`);
           if (saved) setTrades(safeLoadSaved(saved));
+        } finally {
+          setIsTradesLoading(false);
         }
         return;
       }
@@ -330,6 +348,8 @@ export const TradingProvider = ({ children }) => {
           }
         } catch (err) {
           console.warn('Could not load trades from API:', err);
+        } finally {
+          setIsTradesLoading(false);
         }
 
         try {
@@ -347,7 +367,7 @@ export const TradingProvider = ({ children }) => {
     };
 
     loadData();
-  }, [user, token]);
+  }, [user, token, isAuthLoading]);
 
   const [currency, setCurrency] = useState(() => {
     try {
@@ -919,6 +939,7 @@ export const TradingProvider = ({ children }) => {
     <TradingContext.Provider
       value={{
         trades,
+        isTradesLoading,
         rules,
         currency,
         setCurrency,

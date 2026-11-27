@@ -7,7 +7,18 @@ const AuthContext = createContext(null);
 const FIVE_HOURS_MS = 5 * 60 * 60 * 1000; // 5 hours in milliseconds
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    try {
+      const sessionStart = parseInt(localStorage.getItem('pipdesk_session_start') || '0', 10);
+      if (sessionStart && Date.now() - sessionStart >= FIVE_HOURS_MS) {
+        return null;
+      }
+      const savedUser = localStorage.getItem('pipdesk_user_obj');
+      return savedUser ? JSON.parse(savedUser) : null;
+    } catch {
+      return null;
+    }
+  });
   const [token, setToken] = useState(() => localStorage.getItem('pipdesk_auth_token') || null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);

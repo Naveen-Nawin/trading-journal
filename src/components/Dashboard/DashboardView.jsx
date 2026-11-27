@@ -11,6 +11,7 @@ import { RotatingQuotesBanner } from './RotatingQuotesBanner';
 export const DashboardView = () => {
   const {
     trades,
+    isTradesLoading,
     stats,
     currency,
     setIsLogTradeOpen,
@@ -28,7 +29,31 @@ export const DashboardView = () => {
     year: "numeric",
   });
 
-  // Empty State from forex-journal-project
+  // Loading Skeleton while initializing (prevents 2-3s "Your journal is empty" flash)
+  if (isTradesLoading && (!trades || trades.length === 0)) {
+    return (
+      <div className="space-y-6 pb-24">
+        <RotatingQuotesBanner />
+        <div className="animate-pulse space-y-5">
+          <div className="space-y-2">
+            <div className="h-3 w-40 bg-secondary/50 rounded-md" />
+            <div className="h-7 w-60 bg-secondary/50 rounded-lg" />
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-28 rounded-xl border border-border bg-card/40" />
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="lg:col-span-2 h-72 rounded-xl border border-border bg-card/40" />
+            <div className="h-72 rounded-xl border border-border bg-card/40" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Confirmed Empty State (only when loading finished and user has 0 trades)
   if (!trades || trades.length === 0) {
     return (
       <div className="space-y-6 pb-24">
