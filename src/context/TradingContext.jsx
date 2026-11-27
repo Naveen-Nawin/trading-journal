@@ -11,6 +11,7 @@ import { getEffectiveTradePips, getEffectiveTradeRR } from '../utils/pipsAndRR';
 import { serializeTradesToCSV, parseTradesFromCSV } from '../utils/csvHelper';
 import {
   validateBackupJSON,
+  prepareTradesForAccount,
   deduplicateTrades,
   createFullBackupData,
 } from '../utils/backupHelper';
