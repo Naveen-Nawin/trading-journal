@@ -15,7 +15,7 @@
  * - Oil (USOIL, UKOIL, WTI, BRENT): $0.01 move = 1.0 pip (Multiplier = 100)
  */
 export const getPairPipDetails = (rawPair = '') => {
-  const pair = (rawPair || '').toUpperCase().replace(/[\/\-_ ]/g, '');
+  const pair = (rawPair || '').toUpperCase().replace(/[/\-_ ]/g, '');
 
   // 1. Gold (XAUUSD, GOLD)
   if (pair.includes('XAU') || pair.includes('GOLD')) {
@@ -267,7 +267,7 @@ export const calculateRealizedTradeStats = (pair = '', direction = 'BUY', entryP
   const isBuy = (direction || '').toUpperCase() === 'BUY';
   const priceDiff = isBuy ? exit - entry : entry - exit;
 
-  const { multiplier, decimals, type, lotUnitSize } = getPairPipDetails(pair);
+  const { multiplier, decimals, type } = getPairPipDetails(pair);
   const pips = parseFloat((priceDiff * multiplier).toFixed(decimals));
 
   // R-Multiple calculation

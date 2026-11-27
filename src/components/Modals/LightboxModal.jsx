@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { X, Download, ZoomIn, ZoomOut, Maximize2 } from 'lucide-react';
+import { X, Download, ZoomIn, ZoomOut } from 'lucide-react';
 import { useTrading } from '../../context/TradingContext';
 
 export const LightboxModal = () => {

@@ -7,8 +7,25 @@ import { formatCurrencyRaw } from '../../utils/formatters';
 export const CalendarView = () => {
   const { trades, currency, setCalendarDayModal } = useTrading();
 
-  const [currentYear, setCurrentYear] = useState(2026);
-  const [currentMonth, setCurrentMonth] = useState(10); // 0-indexed: 10 = November
+  const [currentYear, setCurrentYear] = useState(() => {
+    if (trades && trades.length > 0) {
+      const dates = trades.map((t) => new Date(t.date || t.opened_at)).filter((d) => !isNaN(d.getTime()));
+      if (dates.length > 0) {
+        return dates[0].getFullYear();
+      }
+    }
+    return new Date().getFullYear();
+  });
+
+  const [currentMonth, setCurrentMonth] = useState(() => {
+    if (trades && trades.length > 0) {
+      const dates = trades.map((t) => new Date(t.date || t.opened_at)).filter((d) => !isNaN(d.getTime()));
+      if (dates.length > 0) {
+        return dates[0].getMonth();
+      }
+    }
+    return new Date().getMonth();
+  });
 
   const monthNames = [
     'January', 'February', 'March', 'April', 'May', 'June',

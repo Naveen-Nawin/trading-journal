@@ -12,7 +12,6 @@ import {
   ExternalLink,
   Image as ImageIcon,
   Camera,
-  Sparkles,
   Clock,
   Archive,
   X,
@@ -20,7 +19,6 @@ import {
 import { useTrading } from '../../context/TradingContext';
 import {
   formatCurrencyRaw,
-  formatR,
   formatPips,
   formatDateDisplay,
   formatTimeDisplay,
@@ -47,7 +45,6 @@ export const TradesView = () => {
     exportBackupJSON,
     setIsImportExportOpen,
     setIsScanModalOpen,
-    logMultipleTrades,
     setLightbox,
   } = useTrading();
 

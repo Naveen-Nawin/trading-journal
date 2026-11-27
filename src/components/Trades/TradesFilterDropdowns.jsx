@@ -9,11 +9,13 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
-  Clock,
   Zap,
 } from 'lucide-react';
 import { getSessionConfig, SESSIONS_LIST } from '../../utils/sessionConfig';
 import { formatDateDisplay } from '../../utils/formatters';
+
+// Common popular pairs available in the filter
+const POPULAR_PAIRS = ['XAUUSD', 'EURUSD', 'GBPUSD', 'US100', 'US30', 'BTCUSD', 'USDJPY', 'NAS100'];
 
 /**
  * Custom Dark-Themed Pair Dropdown Filter
@@ -49,9 +51,6 @@ export const CustomPairFilter = ({ value, onChange, uniquePairs = [], trades = [
     });
     return counts;
   }, [trades]);
-
-  // Combine unique pairs logged in trades with common popular pairs
-  const POPULAR_PAIRS = ['XAUUSD', 'EURUSD', 'GBPUSD', 'US100', 'US30', 'BTCUSD', 'USDJPY', 'NAS100'];
 
   const allDisplayPairs = useMemo(() => {
     const set = new Set([...uniquePairs, ...POPULAR_PAIRS]);

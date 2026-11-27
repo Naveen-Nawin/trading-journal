@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, CheckCircle2, ImagePlus } from 'lucide-react';
 import { useTrading } from '../../context/TradingContext';
-import { calculateRealizedTradeStats, getPairPipDetails } from '../../utils/pipsAndRR';
+import { calculateRealizedTradeStats } from '../../utils/pipsAndRR';
 import { nowTimeFormatted } from '../../utils/formatters';
 
 export const CloseTradeModal = () => {

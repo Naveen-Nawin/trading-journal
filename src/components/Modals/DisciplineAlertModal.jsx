@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldAlert, AlertTriangle, Lock, X, Volume2, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, Lock, X, Volume2 } from 'lucide-react';
 import { useTrading } from '../../context/TradingContext';
 
 export const DisciplineAlertModal = () => {
